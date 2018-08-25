@@ -240,6 +240,11 @@ menu "Games"
 	source "package/tyrquake/Config.in"
 endmenu
 
+menu "The Blue System"
+	source "package/thebluesystem-sdk/Config.in"
+	source "package/thebluesystem-userspace/Config.in"
+endmenu
+
 menu "Graphic libraries and applications (graphic/text)"
 
 comment "Graphic applications"

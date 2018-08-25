@@ -1,0 +1,5 @@
+config BR2_PACKAGE_THEBLUESYSTEM_USERSPACE
+	bool "Userspace"
+	depends on BR2_PACKAGE_XORG7
+	help
+	  The userspace code for The Blue System.
