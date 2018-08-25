@@ -1,0 +1,6 @@
+config BR2_PACKAGE_THEBLUESYSTEM_SDK
+	bool "SDK"
+	depends on BR2_PACKAGE_XORG7
+	depends on BR2_PACKAGE_THEBLUESYSTEM_USERSPACE
+	help
+	  The SDK for The Blue System.
