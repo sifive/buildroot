@@ -165,7 +165,7 @@ int bb_make_directory (char *path, long mode, int flags)
 			}
 			/* Since the directory exists, don't attempt to change
 			 * permissions if it was the full target.  Note that
-			 * this is not an error conditon. */
+			 * this is not an error condition. */
 			if (!c) {
 				umask(mask);
 				return 0;
@@ -440,15 +440,18 @@ void bb_show_usage(void)
 int bb_recursive(const char *fpath, const struct stat *sb,
 		int tflag, struct FTW *ftwbuf){
 
-	if (chown(fpath, recursive_uid, recursive_gid) == -1) {
+	if (lchown(fpath, recursive_uid, recursive_gid) == -1) {
 		bb_perror_msg("chown failed for %s", fpath);
 		return -1;
 	}
-	if (recursive_mode != -1) {
-		if (chmod(fpath, recursive_mode) < 0) {
-			bb_perror_msg("chmod failed for %s", fpath);
-			return -1;
-		}
+
+	/* chmod() is optional, also skip if dangling symlink */
+	if (recursive_mode == -1 || (tflag == FTW_SL && !access(fpath, F_OK)))
+		return 0;
+
+	if (chmod(fpath, recursive_mode) < 0) {
+		bb_perror_msg("chmod failed for %s", fpath);
+		return -1;
 	}
 
 	return 0;
@@ -477,11 +480,11 @@ int main(int argc, char **argv)
 	}
 
 	if (optind >= argc || (rootdir=argv[optind])==NULL) {
-		bb_error_msg_and_die("root directory not speficied");
+		bb_error_msg_and_die("root directory not specified");
 	}
 
 	if (chdir(rootdir) != 0) {
-		bb_perror_msg_and_die("Couldnt chdir to %s", rootdir);
+		bb_perror_msg_and_die("Could not chdir to %s", rootdir);
 	}
 
 	umask(0);
@@ -510,7 +513,7 @@ int main(int argc, char **argv)
 
 		linenum++;
 
-		if (1 == sscanf(line, "|xattr %254s", xattr)) {
+		if (1 == sscanf(line, " |xattr %254s", xattr)) {
 #ifdef EXTENDED_ATTRIBUTES
 			if (!full_name)
 				bb_error_msg_and_die("line %d should be after a file\n", linenum);
@@ -628,7 +631,7 @@ int main(int argc, char **argv)
 				if (mknod(full_name_inc, mode, rdev) < 0) {
 					bb_perror_msg("line %d: can't create node %s", linenum, full_name_inc);
 					ret = EXIT_FAILURE;
-				} else if (chown(full_name_inc, uid, gid) < 0) {
+				} else if (lchown(full_name_inc, uid, gid) < 0) {
 					bb_perror_msg("line %d: can't chown %s", linenum, full_name_inc);
 					ret = EXIT_FAILURE;
 				} else if (chmod(full_name_inc, mode) < 0) {

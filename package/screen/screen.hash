@@ -1,2 +1,5 @@
 # Locally calculated after checking pgp signature
-sha256 97db2114dd963b016cd4ded34831955dcbe3251e5eee45ac2606e67e9f097b2d  screen-4.5.1.tar.gz
+# https://ftp.gnu.org/gnu/screen/screen-5.0.2.tar.gz.sig
+sha256  ca9a2c7e240919bc7ac12124593ae4529bb4eb5f7349d8857829b7e3f0b3b332  screen-5.0.2.tar.gz
+# Locally calculated
+sha256  e79e9c8a0c85d735ff98185918ec94ed7d175efc377012787aebcf3b80f0d90b  COPYING

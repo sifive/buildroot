@@ -1,2 +1,4 @@
 # Locally calculated
-sha256 ec7d0114016c788c1c09859c84860f6cec6c4595436d23245105154b9c046bb2 pcsc-lite-1.8.22.tar.bz2
+sha256  60a08942d8c00a1d86a3bf4c64eddbf7a5569c7c54f6904e3f07801bb5316acd  pcsc-lite-2.5.2.tar.xz
+sha256  7dffe53fb02dd12a3518335d9c948484ee91ca098f1fac2ee9f9af639bbde7c9  COPYING
+sha256  8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903  GPL-3.0.txt

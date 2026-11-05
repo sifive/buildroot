@@ -1,2 +1,10 @@
-# Hash from: http://download.qt.io/official_releases/qt/5.9/5.9.1/submodules/qtwebengine-opensource-src-5.9.1.tar.xz.mirrorlist
-sha256 f6a37eeb9188474a16d29ede498fce959396ab80329a0a83eaeb925251686401  qtwebengine-opensource-src-5.9.1.tar.xz
+# Locally calculated
+sha256  8fa9d026fe0d04cb436ab7a66cdf249d189a91b61c565a1564a9bf05c7c73f7a  qtwebengine-v5.15.18-lts.tar.bz2
+
+# Locally calculated
+sha256  f34787ef0342c614b667186a6ec2f5d6b9d650e30142a2788a589a89743e88e9  LICENSE.Chromium
+sha256  8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643  LICENSE.GPL2
+sha256  8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903  LICENSE.GPL3
+sha256  0dbe024961f6ab5c52689cbd036c977975d0d0f6a67ff97762d96cb819dd5652  LICENSE.GPL3-EXCEPT
+sha256  245248009fd0af1725d183248380e476c1283383909358a13686606352bf2a17  LICENSE.GPLv3
+sha256  9ae1959e86bd49b9680f78e0b49d4e52ae88a3f234d497e175e42a7e8ed59216  LICENSE.LGPL3

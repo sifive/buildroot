@@ -4,21 +4,23 @@
 #
 ################################################################################
 
-POUND_VERSION = 2.7
-POUND_SITE = http://www.apsis.ch/pound
-POUND_SOURCE = Pound-$(POUND_VERSION).tgz
+POUND_VERSION = 4.17
+POUND_SITE = https://github.com/graygnuorg/pound/releases/download/v$(POUND_VERSION)
 POUND_LICENSE = GPL-3.0+
-POUND_LICENSE_FILES = GPL.txt
-POUND_DEPENDENCIES = openssl
+POUND_LICENSE_FILES = COPYING
+POUND_DEPENDENCIES = openssl host-openssl
 
-# Force owner/group to us, otherwise it will try proxy:proxy by
-# default.
-POUND_CONF_OPTS = \
-	--with-owner=$(shell id -un) \
-	--with-group=$(shell id -gn)
+ifeq ($(BR2_PACKAGE_LIBXCRYPT),y)
+POUND_DEPENDENCIES += libxcrypt
+endif
 
-ifeq ($(BR2_PACKAGE_PCRE),y)
-POUND_DEPENDENCIES += pcre
+ifeq ($(BR2_PACKAGE_PCRE2),y)
+POUND_CONF_OPTS += --enable-pcre=2
+POUND_CONF_ENV += \
+	ac_cv_path_PCRE2_CONFIG=$(STAGING_DIR)/usr/bin/pcre2-config
+POUND_DEPENDENCIES += pcre2
+else
+POUND_CONF_OPTS += --disable-pcre
 endif
 
 $(eval $(autotools-package))

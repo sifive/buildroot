@@ -1,3 +1,9 @@
-# From http://sourceforge.net/projects/net-snmp/files/net-snmp/5.7.3/
-md5	d4a3459e1577d0efa8d96ca70a885e53	net-snmp-5.7.3.tar.gz
-sha1	97dc25077257680815de44e34128d365c76bd839	net-snmp-5.7.3.tar.gz
+# From https://sourceforge.net/projects/net-snmp/files/net-snmp/5.9.5.2/
+sha1  051e2e919604f6fac96c1e7df7bd2ec0d288375f  net-snmp-5.9.5.2.tar.gz
+# Locally calculated after checking pgp signature at
+# https://sourceforge.net/projects/net-snmp/files/net-snmp/5.9.5.2/net-snmp-5.9.5.2.tar.gz.asc/download
+# using key 6E6718AEF1EB5C65C32D1B2A356BC0B552D53CAB
+sha256  16707719f833184a4b72835dac359ae188123b06b5e42817c00790d7dc1384bf  net-snmp-5.9.5.2.tar.gz
+
+# Hash for license file
+sha256  ed869ea395a1f125819a56676385ab0557a21507764bf56f2943302011381e59  COPYING

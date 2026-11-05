@@ -19,7 +19,12 @@ copy_toolchain_lib_root = \
 			rm -fr $(TARGET_DIR)/$${DESTDIR}/$${LIBNAME}; \
 			if test -h $${LIBPATH} ; then \
 				cp -d $${LIBPATH} $(TARGET_DIR)/$${DESTDIR}/$${LIBNAME}; \
+				OLD_LIBPATH="$${LIBPATH}"; \
 				LIBPATH="`readlink -f $${LIBPATH}`"; \
+				if [ "$${LIBPATH}" = "" ]; then \
+					echo "LIBPATH empty after trying to resolve symlink $${OLD_LIBPATH}" 1>&2; \
+					exit 1; \
+				fi; \
 			elif test -f $${LIBPATH}; then \
 				$(INSTALL) -D -m0755 $${LIBPATH} $(TARGET_DIR)/$${DESTDIR}/$${LIBNAME}; \
 				break ; \
@@ -91,6 +96,10 @@ copy_toolchain_lib_root = \
 # Note that the 'locale' directories are not copied. They are huge
 # (400+MB) in CodeSourcery toolchains, and they are not really useful.
 #
+# usr/sbin may be a directory in the source toolchain, but a symlink
+# in the destination sysroot, when we are using a merged-bin. Account
+# for that.
+#
 # $1: main sysroot directory of the toolchain
 # $2: arch specific sysroot directory of the toolchain
 # $3: arch specific subdirectory in the sysroot
@@ -104,13 +113,13 @@ copy_toolchain_sysroot = \
 	ARCH_SUBDIR="$(strip $3)"; \
 	ARCH_LIB_DIR="$(strip $4)" ; \
 	SUPPORT_LIB_DIR="$(strip $5)" ; \
-	for i in etc $${ARCH_LIB_DIR} sbin usr usr/$${ARCH_LIB_DIR}; do \
+	for i in etc $${ARCH_LIB_DIR} sbin usr usr/$${ARCH_LIB_DIR} usr/sbin; do \
 		if [ ! -d $${ARCH_SYSROOT_DIR}/$$i ] ; then \
 			continue ; \
 		fi ; \
 		if [ "$$i" = "usr" ]; then \
 			rsync -au --chmod=u=rwX,go=rX --exclude 'locale/' \
-				--include '/libexec*/' --exclude '/lib*/' \
+				--include '/libexec*/' --exclude '/lib*/' --exclude '/sbin' \
 				$${ARCH_SYSROOT_DIR}/$$i/ $(STAGING_DIR)/$$i/ ; \
 		else \
 			rsync -au --chmod=u=rwX,go=rX --exclude 'locale/' \
@@ -119,12 +128,12 @@ copy_toolchain_sysroot = \
 	done ; \
 	for link in $$(find $(STAGING_DIR) -type l); do \
 		target=$$(readlink $${link}) ; \
-		if [ "$${target}" == "$${target\#/}" ] ; then \
+		if [ "$${target}" == "$${target$(SHARP_SIGN)/}" ] ; then \
 			continue ; \
 		fi ; \
-		relpath="$(call relpath_prefix,$${target\#/})" ; \
-		echo "Fixing symlink $${link} from $${target} to $${relpath}$${target\#/}" ; \
-		ln -sf $${relpath}$${target\#/} $${link} ; \
+		relpath="$(call relpath_prefix,$${target$(SHARP_SIGN)/})" ; \
+		echo "Fixing symlink $${link} from $${target} to $${relpath}$${target$(SHARP_SIGN)/}" ; \
+		ln -sf $${relpath}$${target$(SHARP_SIGN)/} $${link} ; \
 	done ; \
 	relpath="$(call relpath_prefix,$${ARCH_LIB_DIR})" ; \
 	if [ "$${relpath}" != "" ]; then \
@@ -135,10 +144,8 @@ copy_toolchain_sysroot = \
 			$(call simplify_symlink,$$i,$(STAGING_DIR)) ; \
 		done ; \
 	fi ; \
-	if [ ! -e $(STAGING_DIR)/lib/ld*.so.* ]; then \
-		if [ -e $${ARCH_SYSROOT_DIR}/lib/ld*.so.* ]; then \
-			cp -a $${ARCH_SYSROOT_DIR}/lib/ld*.so.* $(STAGING_DIR)/lib/ ; \
-		fi ; \
+	if [[ ! $$(find $(STAGING_DIR)/lib -name 'ld*.so.*' -print -quit) ]]; then \
+		find $${ARCH_SYSROOT_DIR}/lib -name 'ld*.so.*' -print0 | xargs -0 -I % cp % $(STAGING_DIR)/lib/; \
 	fi ; \
 	if [ `readlink -f $${SYSROOT_DIR}` != `readlink -f $${ARCH_SYSROOT_DIR}` ] ; then \
 		if [ ! -d $${ARCH_SYSROOT_DIR}/usr/include ] ; then \
@@ -152,17 +159,22 @@ copy_toolchain_sysroot = \
 	if test -n "$${SUPPORT_LIB_DIR}" ; then \
 		cp -a $${SUPPORT_LIB_DIR}/* $(STAGING_DIR)/lib/ ; \
 	fi ; \
-	find $(STAGING_DIR) -type d | xargs chmod 755
+	find $(STAGING_DIR) -type d -print0 | xargs -0 chmod 755
 
 #
 # Check the specified kernel headers version actually matches the
 # version in the toolchain.
 #
-# $1: sysroot directory
-# $2: kernel version string, in the form: X.Y
+# $1: build directory
+# $2: sysroot directory
+# $3: kernel version string, in the form: X.Y
+# $4: test to do for the latest kernel version, 'strict' or 'loose'
+#     always 'strict' if this is not the latest version.
 #
 check_kernel_headers_version = \
-	if ! support/scripts/check-kernel-headers.sh $(1) $(2); then \
+	if ! support/scripts/check-kernel-headers.sh $(1) $(2) $(3) \
+		$(if $(BR2_TOOLCHAIN_HEADERS_LATEST),$(4),strict); \
+	then \
 		exit 1; \
 	fi
 
@@ -179,7 +191,7 @@ check_gcc_version = \
 		exit 0 ; \
 	fi; \
 	real_version=`$(1) -dumpversion` ; \
-	if [[ ! "$${real_version}" =~ ^$${expected_version}\. ]] ; then \
+	if [[ ! "$${real_version}." =~ ^$${expected_version}\. ]] ; then \
 		printf "Incorrect selection of gcc version: expected %s.x, got %s\n" \
 			"$${expected_version}" "$${real_version}" ; \
 		exit 1 ; \
@@ -241,14 +253,11 @@ check_glibc = \
 # $2: cross-readelf path
 check_musl = \
 	__CROSS_CC=$(strip $1) ; \
-	__CROSS_READELF=$(strip $2) ; \
-	echo 'void main(void) {}' | $${__CROSS_CC} -x c -o $(BUILD_DIR)/.br-toolchain-test.tmp - >/dev/null 2>&1; \
-	if ! $${__CROSS_READELF} -l $(BUILD_DIR)/.br-toolchain-test.tmp 2> /dev/null | grep 'program interpreter: /lib/ld-musl' -q; then \
-		rm -f $(BUILD_DIR)/.br-toolchain-test.tmp*; \
+	libc_a_path=`$${__CROSS_CC} -print-file-name=libc.a` ; \
+	if ! strings $${libc_a_path} | grep -q MUSL_LOCPATH ; then \
 		echo "Incorrect selection of the C library" ; \
 		exit -1; \
-	fi ; \
-	rm -f $(BUILD_DIR)/.br-toolchain-test.tmp*
+	fi
 
 #
 # Check the conformity of Buildroot configuration with regard to the
@@ -302,7 +311,7 @@ check_uclibc = \
 	$(call check_uclibc_feature,__UCLIBC_HAS_LFS__,,$${UCLIBC_CONFIG_FILE},Large file support) ;\
 	$(call check_uclibc_feature,__UCLIBC_HAS_IPV6__,,$${UCLIBC_CONFIG_FILE},IPv6 support) ;\
 	$(call check_uclibc_feature,__UCLIBC_HAS_RPC__,BR2_TOOLCHAIN_HAS_NATIVE_RPC,$${UCLIBC_CONFIG_FILE},RPC support) ;\
-	$(call check_uclibc_feature,__UCLIBC_HAS_LOCALE__,BR2_ENABLE_LOCALE,$${UCLIBC_CONFIG_FILE},Locale support) ;\
+	$(call check_uclibc_feature,__UCLIBC_HAS_XLOCALE__,BR2_ENABLE_LOCALE,$${UCLIBC_CONFIG_FILE},Locale support) ;\
 	$(call check_uclibc_feature,__UCLIBC_HAS_WCHAR__,BR2_USE_WCHAR,$${UCLIBC_CONFIG_FILE},Wide char support) ;\
 	$(call check_uclibc_feature,__UCLIBC_HAS_THREADS__,BR2_TOOLCHAIN_HAS_THREADS,$${UCLIBC_CONFIG_FILE},Thread support) ;\
 	$(call check_uclibc_feature,__PTHREADS_DEBUG_SUPPORT__,BR2_TOOLCHAIN_HAS_THREADS_DEBUG,$${UCLIBC_CONFIG_FILE},Thread debugging support) ;\
@@ -319,7 +328,7 @@ check_arm_abi = \
 	__CROSS_CC=$(strip $1) ; \
 	EXT_TOOLCHAIN_TARGET=`LANG=C $${__CROSS_CC} -v 2>&1 | grep ^Target | cut -f2 -d ' '` ; \
 	if ! echo $${EXT_TOOLCHAIN_TARGET} | grep -qE 'eabi(hf)?$$' ; then \
-		echo "External toolchain uses the unsuported OABI" ; \
+		echo "External toolchain uses the unsupported OABI" ; \
 		exit 1 ; \
 	fi ; \
 	if ! echo 'int main(void) {}' | $${__CROSS_CC} -x c -o $(BUILD_DIR)/.br-toolchain-test.tmp - ; then \
@@ -338,11 +347,34 @@ check_arm_abi = \
 #
 check_cplusplus = \
 	__CROSS_CXX=$(strip $1) ; \
-	$${__CROSS_CXX} -v > /dev/null 2>&1 ; \
-	if test $$? -ne 0 ; then \
+	__HAS_CXX=`$${__CROSS_CXX} -v > /dev/null 2>&1 && echo y`; \
+	if [ "$${__HAS_CXX}" != "y" -a "$(BR2_INSTALL_LIBSTDCPP)" = y ] ; then \
 		echo "C++ support is selected but is not available in external toolchain" ; \
 		exit 1 ; \
-	fi
+	elif [ "$${__HAS_CXX}" = "y" -a "$(BR2_INSTALL_LIBSTDCPP)" != y ] ; then \
+		echo "C++ support is not selected but is available in external toolchain" ; \
+		exit 1 ; \
+	fi \
+
+#
+#
+# Check that the external toolchain supports D language
+#
+# $1: cross-gdc path
+#
+check_dlang = \
+	__CROSS_GDC=$(strip $1) ; \
+	__o=$(BUILD_DIR)/.br-toolchain-test-dlang.tmp ; \
+	__HAS_DLANG=`printf 'import std.stdio;\nvoid main() { writeln("Hello World!"); }\n' | \
+		$${__CROSS_GDC} -x d -o $${__o} - >/dev/null 2>&1 && echo y`; \
+	rm -f $${__o}* ; \
+	if [ "$${__HAS_DLANG}" != "y" -a "$(BR2_TOOLCHAIN_HAS_DLANG)" = y ] ; then \
+		echo "D language support is selected but is not available in external toolchain" ; \
+		exit 1 ; \
+	elif [ "$${__HAS_DLANG}" = "y" -a "$(BR2_TOOLCHAIN_HAS_DLANG)" != y ] ; then \
+		echo "D language support is not selected but is available in external toolchain" ; \
+		exit 1 ; \
+	fi \
 
 #
 #
@@ -353,14 +385,36 @@ check_cplusplus = \
 check_fortran = \
 	__CROSS_FC=$(strip $1) ; \
 	__o=$(BUILD_DIR)/.br-toolchain-test-fortran.tmp ; \
-	printf 'program hello\n\tprint *, "Hello Fortran!\\n"\nend program hello\n' | \
-	$${__CROSS_FC} -x f95 -o $${__o} - ; \
-	if test $$? -ne 0 ; then \
-		rm -f $${__o}* ; \
+	__HAS_FORTRAN=`printf 'program hello\n\tprint *, "Hello Fortran!\\\n"\nend program hello\n' | \
+		$${__CROSS_FC} -x f95 -ffree-form -o $${__o} - 2>/dev/null && echo y`; \
+	rm -f $${__o}* ; \
+	if [ "$${__HAS_FORTRAN}" != "y" -a "$(BR2_TOOLCHAIN_HAS_FORTRAN)" = y ] ; then \
 		echo "Fortran support is selected but is not available in external toolchain" ; \
 		exit 1 ; \
-	fi ; \
-	rm -f $${__o}* \
+	elif [ "$${__HAS_FORTRAN}" = "y" -a "$(BR2_TOOLCHAIN_HAS_FORTRAN)" != y ] ; then \
+		echo "Fortran support is not selected but is available in external toolchain" ; \
+		exit 1 ; \
+	fi \
+
+#
+#
+# Check that the external toolchain supports OpenMP
+#
+# $1: cross-gcc path
+#
+check_openmp = \
+	__CROSS_CC=$(strip $1) ; \
+	__o=$(BUILD_DIR)/.br-toolchain-test-openmp.tmp ; \
+	__HAS_OPENMP=`printf '\#include <omp.h>\nint main(void) { return omp_get_thread_num(); }' | \
+		$${__CROSS_CC} -fopenmp -x c -o $${__o} - >/dev/null 2>&1 && echo y` ; \
+	rm -f $${__o}* ; \
+	if [ "$${__HAS_OPENMP}" != "y" -a "$(BR2_TOOLCHAIN_HAS_OPENMP)" = y ] ; then \
+		echo "OpenMP support is selected but is not available in external toolchain"; \
+		exit 1 ; \
+	elif [ "$${__HAS_OPENMP}" = "y" -a "$(BR2_TOOLCHAIN_HAS_OPENMP)" != y ] ; then \
+		echo "OpenMP support is not selected but is available in external toolchain"; \
+		exit 1 ; \
+	fi \
 
 #
 # Check that the cross-compiler given in the configuration exists
@@ -381,12 +435,16 @@ check_cross_compiler_exists = \
 #   the host tuple.
 # - Exclude distro-class toolchains which are not relocatable.
 # - Exclude broken toolchains which return "libc.a" with -print-file-name.
+# - Exclude toolchains used with wrong toolchain cflags or broken toolchains
+#   which return "libc.a" with -print-file-name and toolchain cflags.
 # - Exclude toolchains which doesn't support --sysroot option.
 #
 # $1: cross-gcc path
+# $1: toolchain cflags
 #
 check_unusable_toolchain = \
 	__CROSS_CC=$(strip $1) ; \
+	__TOOLCHAIN_CFLAGS=$(strip $2) ; \
 	vendor=`$${__CROSS_CC} -dumpmachine | cut -f2 -d'-'` ; \
 	if test "$${vendor}" = "angstrom" ; then \
 		echo "Angstrom toolchains are not pure toolchains: they contain" ; \
@@ -408,6 +466,13 @@ check_unusable_toolchain = \
 		echo "Unable to detect the toolchain sysroot, Buildroot cannot use this toolchain." ; \
 		exit 1 ; \
 	fi ; \
+	libc_a_archsysroot_path=`$${__CROSS_CC} $${__TOOLCHAIN_CFLAGS} -print-file-name=libc.a` ; \
+	if test "$${libc_a_archsysroot_path}" = "libc.a" ; then \
+		echo "Unable to detect the toolchain architecture sysroot." ; \
+		echo "Please check the Target Architecture Variant selected, the toolchains may not support it." ; \
+		echo "Buildroot cannot use this toolchain." ; \
+		exit 1 ; \
+	fi; \
 	sysroot_dir="$(call toolchain_find_sysroot,$${__CROSS_CC})" ; \
 	if test -z "$${sysroot_dir}" ; then \
 		echo "External toolchain doesn't support --sysroot. Cannot use." ; \
@@ -418,10 +483,11 @@ check_unusable_toolchain = \
 # Check if the toolchain has SSP (stack smashing protector) support
 #
 # $1: cross-gcc path
+# $2: gcc ssp option
 #
 check_toolchain_ssp = \
 	__CROSS_CC=$(strip $1) ; \
-	__HAS_SSP=`echo 'void main(){}' | $${__CROSS_CC} -fstack-protector -x c - -o $(BUILD_DIR)/.br-toolchain-test.tmp >/dev/null 2>&1 && echo y` ; \
+	__HAS_SSP=`echo 'int main(){}' | $${__CROSS_CC} -Werror -fstack-protector -x c - -o $(BUILD_DIR)/.br-toolchain-test.tmp >/dev/null 2>&1 && echo y` ; \
 	if [ "$(BR2_TOOLCHAIN_HAS_SSP)" != "y" -a "$${__HAS_SSP}" = "y" ] ; then \
 		echo "SSP support available in this toolchain, please enable BR2_TOOLCHAIN_EXTERNAL_HAS_SSP" ; \
 		exit 1 ; \
@@ -430,6 +496,13 @@ check_toolchain_ssp = \
 		echo "SSP support not available in this toolchain, please disable BR2_TOOLCHAIN_EXTERNAL_HAS_SSP" ; \
 		exit 1 ; \
 	fi ; \
+	__SSP_OPTION=$(2); \
+	if [ -n "$${__SSP_OPTION}" ] ; then \
+		if ! echo 'int main(){}' | $${__CROSS_CC} -Werror $${__SSP_OPTION} -x c - -o $(BUILD_DIR)/.br-toolchain-test.tmp >/dev/null 2>&1 ; then \
+			echo "SSP option $${__SSP_OPTION} not available in this toolchain, please select another SSP level" ; \
+			exit 1 ; \
+		fi; \
+	fi; \
 	rm -f $(BUILD_DIR)/.br-toolchain-test.tmp*
 
 #
@@ -437,7 +510,8 @@ check_toolchain_ssp = \
 #
 gen_gdbinit_file = \
 	mkdir -p $(STAGING_DIR)/usr/share/buildroot/ ; \
-	echo "set sysroot $(STAGING_DIR)" > $(STAGING_DIR)/usr/share/buildroot/gdbinit
+	echo "add-auto-load-safe-path $(STAGING_DIR)" > $(STAGING_DIR)/usr/share/buildroot/gdbinit ; \
+	echo "set sysroot $(STAGING_DIR)" >> $(STAGING_DIR)/usr/share/buildroot/gdbinit
 
 # Given a path, determine the relative prefix (../) needed to return to the
 # root level. Note that the last component is treated as a file component; use a

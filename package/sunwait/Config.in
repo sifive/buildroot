@@ -1,0 +1,7 @@
+config BR2_PACKAGE_SUNWAIT
+	bool "sunwait"
+	help
+	  Sunwait calculates sunrise or sunset times with civil,
+	  nautical, astronomical and custom twilights.
+
+	  https://github.com/risacher/sunwait

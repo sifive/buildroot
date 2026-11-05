@@ -20,7 +20,6 @@ config BR2_PACKAGE_LIBDRM_ENABLE_ATOMIC
 
 config BR2_PACKAGE_LIBDRM_INTEL
 	bool "intel"
-	depends on BR2_i386 || BR2_x86_64
 	depends on BR2_PACKAGE_LIBDRM_HAS_ATOMIC
 	select BR2_PACKAGE_LIBDRM_ENABLE_ATOMIC
 	select BR2_PACKAGE_LIBPCIACCESS
@@ -36,6 +35,7 @@ config BR2_PACKAGE_LIBDRM_RADEON
 
 config BR2_PACKAGE_LIBDRM_AMDGPU
 	bool "amdgpu"
+	depends on BR2_USE_MMU # fork()
 	depends on BR2_PACKAGE_LIBDRM_HAS_ATOMIC
 	select BR2_PACKAGE_LIBDRM_ENABLE_ATOMIC
 	help
@@ -64,7 +64,6 @@ config BR2_PACKAGE_LIBDRM_OMAP
 
 config BR2_PACKAGE_LIBDRM_ETNAVIV
 	bool "etnaviv (experimental)"
-	depends on BR2_arm
 	depends on BR2_PACKAGE_LIBDRM_HAS_ATOMIC
 	select BR2_PACKAGE_LIBDRM_ENABLE_ATOMIC
 	help

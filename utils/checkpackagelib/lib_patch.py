@@ -3,25 +3,26 @@
 # functions don't need to check for things already checked by running
 # "make package-dirclean package-patch".
 
+import os
 import re
 
-from base import _CheckFunction
-# Notice: ignore 'imported but unused' from pyflakes for check functions.
-from lib import NewlineAtEof
+from checkpackagelib.base import _CheckFunction
+from checkpackagelib.lib import NewlineAtEof           # noqa: F401
+from checkpackagelib.tool import NotExecutable         # noqa: F401
 
 
 class ApplyOrder(_CheckFunction):
-    APPLY_ORDER = re.compile("/\d{1,4}-[^/]*$")
+    APPLY_ORDER = re.compile(r"\d{1,4}-[^/]*$")
 
     def before(self):
-        if not self.APPLY_ORDER.search(self.filename):
+        if not self.APPLY_ORDER.match(os.path.basename(self.filename)):
             return ["{}:0: use name <number>-<description>.patch "
                     "({}#_providing_patches)"
                     .format(self.filename, self.url_to_manual)]
 
 
 class NumberedSubject(_CheckFunction):
-    NUMBERED_PATCH = re.compile("Subject:\s*\[PATCH\s*\d+/\d+\]")
+    NUMBERED_PATCH = re.compile(r"Subject:\s*\[PATCH\s*\d+/\d+\]")
 
     def before(self):
         self.git_patch = False
@@ -44,7 +45,7 @@ class NumberedSubject(_CheckFunction):
 
 
 class Sob(_CheckFunction):
-    SOB_ENTRY = re.compile("^Signed-off-by: .*$")
+    SOB_ENTRY = re.compile(r"^Signed-off-by: .*$")
 
     def before(self):
         self.found = False
@@ -59,4 +60,23 @@ class Sob(_CheckFunction):
         if not self.found:
             return ["{}:0: missing Signed-off-by in the header "
                     "({}#_format_and_licensing_of_the_package_patches)"
+                    .format(self.filename, self.url_to_manual)]
+
+
+class Upstream(_CheckFunction):
+    UPSTREAM_ENTRY = re.compile(r"^Upstream: .*$")
+
+    def before(self):
+        self.found = False
+
+    def check_line(self, lineno, text):
+        if self.found:
+            return
+        if self.UPSTREAM_ENTRY.search(text):
+            self.found = True
+
+    def after(self):
+        if not self.found:
+            return ["{}:0: missing Upstream in the header "
+                    "({}#_additional_patch_documentation)"
                     .format(self.filename, self.url_to_manual)]

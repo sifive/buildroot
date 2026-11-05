@@ -4,11 +4,8 @@
 #
 ################################################################################
 
-LIBYUV_VERSION = 1ebf86795cb213a37f06eb1ef3713cff080568ea
-# we use the FreeSwitch fork because there is currently no alternative
-# for https://chromium.googlesource.com/libyuv/libyuv which will be
-# deactivated in 2015.
-LIBYUV_SITE = https://freeswitch.org/stash/scm/sd/libyuv.git
+LIBYUV_VERSION = 4825d9b29eea4dac24607245db7ec7d4c41c1964
+LIBYUV_SITE = https://chromium.googlesource.com/libyuv/libyuv
 LIBYUV_SITE_METHOD = git
 LIBYUV_LICENSE = BSD-3-Clause
 LIBYUV_LICENSE_FILES = LICENSE

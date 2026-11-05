@@ -1,3 +1,5 @@
-# md5 from https://pypi.python.org/pypi/cheroot/json, sha256 locally computed
-md5	e5503b0e67bdba29c6585965e7f42099  cheroot-5.5.0.tar.gz
-sha256	59e349f91b9230930f7078646bb92b3a5b0f9cf19a6ff949777409fd289a1eba  cheroot-5.5.0.tar.gz
+# md5, sha256 from https://pypi.org/pypi/cheroot/json
+md5  08ccbea749c4cd35b7371ced995d08b2  cheroot-11.1.2.tar.gz
+sha256  bfb70c49663f63b0440f2b54dbc6b0d1650e56dfe4e2641f59b2c6f727b44aca  cheroot-11.1.2.tar.gz
+# Locally computed sha256 checksums
+sha256  e20feeb491a7e98084f15719349e9857aad41c4503c5e479f8815b063dbf7564  LICENSE.md

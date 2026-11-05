@@ -4,31 +4,26 @@
 #
 ################################################################################
 
-LINKS_VERSION = 2.14
+LINKS_VERSION = 2.30
 LINKS_SOURCE = links-$(LINKS_VERSION).tar.bz2
 LINKS_SITE = http://links.twibright.com/download
 LINKS_DEPENDENCIES = host-pkgconf
 LINKS_LICENSE = GPL-2.0+
 LINKS_LICENSE_FILES = COPYING
+LINKS_CPE_ID_VENDOR = twibright
+LINKS_CONF_OPTS = --without-directfb
 
 ifeq ($(BR2_PACKAGE_LINKS_GRAPHICS),y)
 LINKS_CONF_OPTS += --enable-graphics
 LINKS_DEPENDENCIES += libpng
 ifeq ($(BR2_PACKAGE_XLIB_LIBXT),y)
-LINKS_CONF_OPTS += --with-x
+LINKS_CONF_OPTS += \
+	--with-x \
+	--x-includes=$(STAGING_DIR)/usr/include \
+	--x-libraries=$(STAGING_DIR)/usr/lib
 LINKS_DEPENDENCIES += xlib_libXt
 else
 LINKS_CONF_OPTS += --without-x
-endif
-ifeq ($(BR2_PACKAGE_DIRECTFB),y)
-LINKS_CONF_ENV = ac_cv_path_DIRECTFB_CONFIG=$(STAGING_DIR)/usr/bin/directfb-config
-ifeq ($(BR2_STATIC_LIBS),y)
-LINKS_CONF_ENV += LIBS=-lstdc++
-endif
-LINKS_CONF_OPTS += --with-directfb
-LINKS_DEPENDENCIES += directfb
-else
-LINKS_CONF_OPTS += --without-directfb
 endif
 ifeq ($(BR2_PACKAGE_JPEG),y)
 LINKS_CONF_OPTS += --with-libjpeg

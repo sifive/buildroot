@@ -5,7 +5,7 @@ menuconfig BR2_PACKAGE_GST1_PLUGINS_UGLY
 	  A set of well-supported plug-ins for GStreamer, but might pose
 	  problems for distributors.
 
-	  http://gstreamer.freedesktop.org/
+	  https://gstreamer.freedesktop.org/
 
 if BR2_PACKAGE_GST1_PLUGINS_UGLY
 
@@ -26,11 +26,6 @@ config BR2_PACKAGE_GST1_PLUGINS_UGLY_PLUGIN_DVDSUB
 	help
 	  DVD subtitle parser and decoder
 
-config BR2_PACKAGE_GST1_PLUGINS_UGLY_PLUGIN_XINGMUX
-	bool "xingmux"
-	help
-	  Add XING tags to mpeg audio files
-
 config BR2_PACKAGE_GST1_PLUGINS_UGLY_PLUGIN_REALMEDIA
 	bool "realmedia"
 	help
@@ -40,21 +35,13 @@ comment "plugins with external dependencies (there may be more available)"
 
 config BR2_PACKAGE_GST1_PLUGINS_UGLY_PLUGIN_DVDREAD
 	bool "dvdread"
+	depends on BR2_TOOLCHAIN_GCC_AT_LEAST_8 # libdvdcss -> libdvdread
 	select BR2_PACKAGE_LIBDVDREAD
 	help
 	  Access a DVD with dvdread
 
-config BR2_PACKAGE_GST1_PLUGINS_UGLY_PLUGIN_LAME
-	bool "lame (*.mp3 audio encoder)"
-	select BR2_PACKAGE_LAME
-	help
-	  Encode MP3s with LAME
-
-config BR2_PACKAGE_GST1_PLUGINS_UGLY_PLUGIN_MPG123
-	bool "mpg123 (*.mp3 audio)"
-	select BR2_PACKAGE_MPG123
-	help
-	  mp3 decoding based on the mpg123 library
+comment "dvdread needs a toolchain w/ gcc >= 8"
+	depends on !BR2_TOOLCHAIN_GCC_AT_LEAST_8
 
 config BR2_PACKAGE_GST1_PLUGINS_UGLY_PLUGIN_MPEG2DEC
 	bool "mpeg2dec"

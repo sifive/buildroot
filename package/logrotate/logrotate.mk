@@ -4,13 +4,14 @@
 #
 ################################################################################
 
-LOGROTATE_VERSION = 3.12.3
-LOGROTATE_SITE = $(call github,logrotate,logrotate,$(LOGROTATE_VERSION))
+LOGROTATE_VERSION = 3.22.0
+LOGROTATE_SOURCE = logrotate-$(LOGROTATE_VERSION).tar.xz
+LOGROTATE_SITE = https://github.com/logrotate/logrotate/releases/download/$(LOGROTATE_VERSION)
 LOGROTATE_LICENSE = GPL-2.0+
 LOGROTATE_LICENSE_FILES = COPYING
+LOGROTATE_CPE_ID_VALID = YES
 LOGROTATE_DEPENDENCIES = popt host-pkgconf
-# tarball does not have a generated configure script
-LOGROTATE_AUTORECONF = YES
+LOGROTATE_SELINUX_MODULES = logrotate
 LOGROTATE_CONF_ENV = LIBS="`$(PKG_CONFIG_HOST_BINARY) --libs popt`"
 
 ifeq ($(BR2_PACKAGE_LIBSELINUX),y)

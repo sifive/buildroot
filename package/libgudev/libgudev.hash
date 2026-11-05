@@ -1,2 +1,5 @@
-# From: http://ftp.gnome.org/pub/GNOME/sources/libgudev/230/libgudev-230.sha256sum
-sha256 a2e77faced0c66d7498403adefcc0707105e03db71a2b2abd620025b86347c18  libgudev-230.tar.xz
+# From https://download.gnome.org/sources/libgudev/238/libgudev-238.sha256sum
+sha256  61266ab1afc9d73dbc60a8b2af73e99d2fdff47d99544d085760e4fa667b5dd1  libgudev-238.tar.xz
+
+# Hash for license file:
+sha256  dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551  COPYING

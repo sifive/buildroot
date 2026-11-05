@@ -4,14 +4,16 @@
 #
 ################################################################################
 
-IPTABLES_VERSION = 1.6.1
-IPTABLES_SOURCE = iptables-$(IPTABLES_VERSION).tar.bz2
-IPTABLES_SITE = http://ftp.netfilter.org/pub/iptables
+IPTABLES_VERSION = 1.8.13
+IPTABLES_SOURCE = iptables-$(IPTABLES_VERSION).tar.xz
+IPTABLES_SITE = https://netfilter.org/projects/iptables/files
 IPTABLES_INSTALL_STAGING = YES
-IPTABLES_DEPENDENCIES = host-pkgconf \
-	$(if $(BR2_PACKAGE_LIBNETFILTER_CONNTRACK),libnetfilter_conntrack)
+IPTABLES_DEPENDENCIES = host-pkgconf
 IPTABLES_LICENSE = GPL-2.0
 IPTABLES_LICENSE_FILES = COPYING
+IPTABLES_CPE_ID_VENDOR = netfilter
+IPTABLES_SELINUX_MODULES = iptables
+
 # Building static causes ugly warnings on some plugins
 IPTABLES_CONF_OPTS = --libexecdir=/usr/lib --with-kernel=$(STAGING_DIR)/usr \
 	$(if $(BR2_STATIC_LIBS),,--disable-static)
@@ -45,6 +47,52 @@ IPTABLES_CONF_OPTS += --enable-bpf-compiler --enable-nfsynproxy
 IPTABLES_DEPENDENCIES += libpcap
 else
 IPTABLES_CONF_OPTS += --disable-bpf-compiler --disable-nfsynproxy
+endif
+
+# Enable kernel support for iptables-nft even if nftables compat is not
+# enabled by default.
+ifeq ($(BR2_PACKAGE_IPTABLES_NFTABLES),y)
+define IPTABLES_LINUX_CONFIG_FIXUPS_IPTABLES_NFT
+	$(call KCONFIG_ENABLE_OPT,CONFIG_NF_TABLES)
+	$(call KCONFIG_ENABLE_OPT,CONFIG_NF_TABLES_INET)
+	$(call KCONFIG_ENABLE_OPT,CONFIG_NFT_SOCKET)
+endef
+endif
+
+# Enable kernel support for iptables-legacy only if nftables compat is not
+# enabled by default.
+ifeq ($(BR2_PACKAGE_IPTABLES_NFTABLES_DEFAULT),)
+define IPTABLES_LINUX_CONFIG_FIXUPS_IPTABLES_LEGACY
+	# [for Linux kernel versions 6.17 and later]
+	$(call KCONFIG_ENABLE_OPT,CONFIG_IP_NF_IPTABLES_LEGACY)
+	$(call KCONFIG_ENABLE_OPT,CONFIG_NETFILTER_XTABLES_LEGACY)
+endef
+endif
+
+define IPTABLES_LINUX_CONFIG_FIXUPS
+	$(call KCONFIG_ENABLE_OPT,CONFIG_IP_NF_IPTABLES)
+	$(call KCONFIG_ENABLE_OPT,CONFIG_IP_NF_FILTER)
+	$(call KCONFIG_ENABLE_OPT,CONFIG_NETFILTER)
+	$(call KCONFIG_ENABLE_OPT,CONFIG_NETFILTER_XTABLES)
+	$(IPTABLES_LINUX_CONFIG_FIXUPS_IPTABLES_LEGACY)
+	$(IPTABLES_LINUX_CONFIG_FIXUPS_IPTABLES_NFT)
+endef
+
+define IPTABLES_INSTALL_INIT_SYSV
+	$(INSTALL) -m 0755 -D package/iptables/S35iptables \
+		$(TARGET_DIR)/etc/init.d/S35iptables
+endef
+
+ifeq ($(BR2_PACKAGE_IPTABLES_NFTABLES_DEFAULT),y)
+define IPTABLES_MAKE_NFTABLES_DEFAULT
+	ln -sf xtables-nft-multi $(TARGET_DIR)/usr/sbin/iptables
+	ln -sf xtables-nft-multi $(TARGET_DIR)/usr/sbin/iptables-restore
+	ln -sf xtables-nft-multi $(TARGET_DIR)/usr/sbin/iptables-save
+	ln -sf xtables-nft-multi $(TARGET_DIR)/usr/sbin/ip6tables
+	ln -sf xtables-nft-multi $(TARGET_DIR)/usr/sbin/ip6tables-restore
+	ln -sf xtables-nft-multi $(TARGET_DIR)/usr/sbin/ip6tables-save
+endef
+IPTABLES_POST_INSTALL_TARGET_HOOKS += IPTABLES_MAKE_NFTABLES_DEFAULT
 endif
 
 $(eval $(autotools-package))

@@ -1,0 +1,5 @@
+# md5, sha256 from https://pypi.org/pypi/aerich/json
+md5  208ef8a512bf98cfa08b701819679d45  aerich-0.10.1.tar.gz
+sha256  d090b486de5f632a8c8e349e9227d076b26ba6ffabb522732bb681a9bc2e81e5  aerich-0.10.1.tar.gz
+# Locally computed sha256 checksums
+sha256  4cc00f0e33ac8e089b37d8a1474be441b26311bdc16fe035c75b51201515f617  LICENSE

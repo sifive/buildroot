@@ -1,2 +1,5 @@
-# From http://ftp.gnome.org/pub/GNOME/sources/glibmm/2.52/glibmm-2.52.0.sha256sum
-sha256	81b8abf21c645868c06779abc5f34efc1a51d5e61589dab2a2ed67faa8d4811e glibmm-2.52.0.tar.xz
+# From https://download.gnome.org/sources/glibmm/2.76/glibmm-2.76.0.sha256sum
+sha256  8637d80ceabd94fddd6e48970a082a264558d4ab82684e15ffc87e7ef3462ab2  glibmm-2.76.0.tar.xz
+# License files, locally calculated
+sha256  3ea7fa7c5d9a3a113e950eca9cfb85107f096270d8e4dd99daa9d8abdebc60e7  COPYING
+sha256  ab15fd526bd8dd18a9e77ebc139656bf4d33e97fc7238cd11bf60e2b9b8666c6  COPYING.tools

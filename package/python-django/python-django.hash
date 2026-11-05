@@ -1,3 +1,15 @@
-# md5 from https://pypi.python.org/pypi/django/json, sha256 locally computed
-md5	693dfeabad62c561cb205900d32c2a98  Django-1.10.7.tar.gz
-sha256	593d779dbc2350a245c4f76d26bdcad58a39895e87304fe6d725bbdf84b5b0b8  Django-1.10.7.tar.gz
+# md5, sha256 from https://pypi.org/pypi/django/json
+md5  7c2461ccfcea3d11464ef207fa0bcbed  django-6.1.2.tar.gz
+sha256  a1e92451ccb8b514e91bbb3b6d186d20b4030558f116b5d9de6535455ff210b7  django-6.1.2.tar.gz
+# Locally computed sha256 checksums
+sha256  b846415d1b514e9c1dff14a22deb906d794bc546ca6129f950a18cd091e2a669  LICENSE
+sha256  be30dc0e3f7010af6c453d205feaece1f89494789b6e92f0c255ef597a1e6864  django/contrib/gis/measure.py
+sha256  570a045a8372b6cd6a00e30ebafe8e3e8dfc0a7fe3d4ef2cc5f16d419eb63aeb  django/contrib/gis/gdal/LICENSE
+sha256  08bf24b7551238ae325295245425b1caeb9ad0f42f9e2d303c7b353502632045  django/contrib/gis/geos/LICENSE
+sha256  b49eebe24624d23591417ab5b163a27d40bb89889a24b2c1699194e309aba826  django/contrib/admin/static/admin/js/inlines.js
+sha256  d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d  django/contrib/admin/static/admin/js/vendor/jquery/LICENSE.txt
+sha256  4ee0cbc51370afde358652a0f977972053729ed578b6a42f5e2a037d114f0b39  django/contrib/admin/static/admin/js/vendor/select2/LICENSE.md
+sha256  73af2949bff9296cb0f816c3be19a4da4e95adc94c1f924796e8bad3f03f2f29  django/contrib/admin/static/admin/js/vendor/xregexp/LICENSE.txt
+sha256  6e3bedbbf4310061e026d1b0b99beb390b845bfd29732455c13dd320db1feca6  django/contrib/admin/static/admin/img/README.md
+sha256  54004c4b606964ebc163af16d04607c16e428f8a78a026fecb53f70c09f4a94f  django/dispatch/license.txt
+sha256  d1046875a3eff7419a4e55b254fbb68fd58dfdbc701626bc8f57da76a5120cc4  django/utils/archive.py

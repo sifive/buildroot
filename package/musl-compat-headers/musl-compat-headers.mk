@@ -5,7 +5,7 @@
 ################################################################################
 
 # No main site, just using extra downloads
-MUSL_COMPAT_HEADERS_QUEUE_H = http://cvsweb.netbsd.org/bsdweb.cgi/src/sys/sys/queue.h?rev=1.70
+MUSL_COMPAT_HEADERS_QUEUE_H = https://raw.githubusercontent.com/NetBSD/src/03be82a6b173b3c62116b7a186067fed3004dd44/sys/sys/queue.h
 
 MUSL_COMPAT_HEADERS_EXTRA_DOWNLOADS = $(MUSL_COMPAT_HEADERS_QUEUE_H)
 
@@ -20,7 +20,7 @@ MUSL_COMPAT_HEADERS_INSTALL_STAGING = YES
 
 # Copying both headers so legal-info finds them (they are _LICENSE_FILES)
 define MUSL_COMPAT_HEADERS_EXTRACT_CMDS
-	$(INSTALL) -m 0644 -D $(DL_DIR)/$(notdir $(MUSL_COMPAT_HEADERS_QUEUE_H)) $(@D)/queue.h
+	$(INSTALL) -m 0644 -D $(MUSL_COMPAT_HEADERS_DL_DIR)/$(notdir $(MUSL_COMPAT_HEADERS_QUEUE_H)) $(@D)/queue.h
 	$(INSTALL) -m 0644 -D $(MUSL_COMPAT_HEADERS_PKGDIR)/cdefs.h $(@D)/cdefs.h
 endef
 

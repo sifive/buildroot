@@ -4,15 +4,28 @@
 #
 ################################################################################
 
-GAUCHE_VERSION = 0.9.5
+GAUCHE_VERSION = 0.9.12
 GAUCHE_SOURCE = Gauche-$(GAUCHE_VERSION).tgz
-GAUCHE_SITE = http://downloads.sourceforge.net/project/gauche/Gauche
+GAUCHE_SITE = https://github.com/shirok/Gauche/releases/download/release$(subst .,_,$(GAUCHE_VERSION))
 GAUCHE_LICENSE = BSD-3-Clause, Boehm-gc, SRFI (srfi-11.scm), reload (reload.scm)
 GAUCHE_LICENSE_FILES = COPYING
 GAUCHE_DEPENDENCIES = host-gauche
 
-HOST_GAUCHE_CONF_OPTS = --without-zlib
-GAUCHE_CONF_OPTS = --without-libatomic-ops
+# host-gauche is only used to build the target gauche, so it doesn't
+# need TLS support. Disable it so that configure doesn't pick up an
+# incompatible mbedtls from the build machine.
+HOST_GAUCHE_CONF_OPTS = --without-zlib --with-tls=no
+GAUCHE_CONF_OPTS = --with-libatomic-ops=none
+
+# Enable embedded axTLS
+GAUCHE_TLS_LIBS = axtls
+
+ifeq ($(BR2_PACKAGE_MBEDTLS),y)
+GAUCHE_TLS_LIBS += mbedtls
+GAUCHE_DEPENDENCIES += mbedtls
+endif
+
+GAUCHE_CONF_OPTS += --with-tls="$(GAUCHE_TLS_LIBS)"
 
 ifeq ($(BR2_PACKAGE_ZLIB),y)
 GAUCHE_CONF_OPTS += --with-zlib=$(STAGING_DIR)
@@ -29,5 +42,5 @@ endif
 # here.
 GAUCHE_CONF_ENV = CFLAGS="$(TARGET_CFLAGS) -std=gnu99"
 
-$(eval $(host-autotools-package))
 $(eval $(autotools-package))
+$(eval $(host-autotools-package))

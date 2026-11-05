@@ -5,7 +5,12 @@ config BR2_PACKAGE_IPMITOOL
 	  IPMItool provides a simple command-line interface to
 	  IPMI-enabled devices.
 
-	  http://sourceforge.net/projects/ipmitool/
+	  ipmitool will look up the IANA PEN (Enterprise Numbers)
+	  registry in /usr/share/misc/iana/. The IANA PEN is optional,
+	  it can be provided by the iana-assignment package or by a
+	  rootfs overlay.
+
+	  https://codeberg.org/IPMITool/ipmitool/
 
 if BR2_PACKAGE_IPMITOOL
 
@@ -32,7 +37,6 @@ config BR2_PACKAGE_IPMITOOL_IPMIEVD
 
 config BR2_PACKAGE_IPMITOOL_IPMISHELL
 	bool "ipmishell"
-	select BR2_PACKAGE_NCURSES
 	select BR2_PACKAGE_READLINE
 	help
 	  IPMI shell interface

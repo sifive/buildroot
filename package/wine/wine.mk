@@ -4,27 +4,37 @@
 #
 ################################################################################
 
-WINE_VERSION = 2.0.2
+# In Buildroot, Wine should be updated only on "stable" versions. This
+# usually corresponds to version "X.0" (for initial stable releases)
+# or "X.0.y" (for maintenance releases). Please avoid updating to a
+# development version, unless it is absolutely needed (for example:
+# incompatibility with another library and no maintenance stable
+# version is available).
+WINE_VERSION = 11.0
 WINE_SOURCE = wine-$(WINE_VERSION).tar.xz
-WINE_SITE = https://dl.winehq.org/wine/source/2.0
+WINE_SITE = https://dl.winehq.org/wine/source/11.0
 WINE_LICENSE = LGPL-2.1+
 WINE_LICENSE_FILES = COPYING.LIB LICENSE
+WINE_CPE_ID_VENDOR = winehq
+WINE_SELINUX_MODULES = wine
 WINE_DEPENDENCIES = host-bison host-flex host-wine
+HOST_WINE_DEPENDENCIES = host-bison host-flex
 
 # Wine needs its own directory structure and tools for cross compiling
 WINE_CONF_OPTS = \
 	--with-wine-tools=../host-wine-$(WINE_VERSION) \
 	--disable-tests \
 	--disable-win64 \
+	--enable-tools \
 	--without-capi \
 	--without-coreaudio \
 	--without-gettext \
 	--without-gettextpo \
 	--without-gphoto \
-	--without-gsm \
-	--without-hal \
+	--without-mingw \
 	--without-opencl \
-	--without-oss
+	--without-oss \
+	--without-vulkan
 
 # Wine uses a wrapper around gcc, and uses the value of --host to
 # construct the filename of the gcc to call.  But for external
@@ -37,7 +47,7 @@ ifeq ($(BR2_TOOLCHAIN_EXTERNAL),y)
 WINE_CONF_OPTS += TARGETFLAGS="-b $(TOOLCHAIN_EXTERNAL_PREFIX)"
 endif
 
-ifeq ($(BR2_PACKAGE_ALSA_LIB)$(BR2_PACKAGE_ALSA_LIB_SEQ)$(BR2_PACKAGE_ALSA_LIB_RAWMIDI),yyy)
+ifeq ($(BR2_PACKAGE_ALSA_LIB),y)
 WINE_CONF_OPTS += --with-alsa
 WINE_DEPENDENCIES += alsa-lib
 else
@@ -57,6 +67,13 @@ WINE_CONF_OPTS += --with-dbus
 WINE_DEPENDENCIES += dbus
 else
 WINE_CONF_OPTS += --without-dbus
+endif
+
+ifeq ($(BR2_PACKAGE_FFMPEG),y)
+WINE_CONF_OPTS += --with-ffmpeg
+WINE_DEPENDENCIES += ffmpeg
+else
+WINE_CONF_OPTS += --without-ffmpeg
 endif
 
 ifeq ($(BR2_PACKAGE_FONTCONFIG),y)
@@ -92,20 +109,6 @@ else
 WINE_CONF_OPTS += --without-gstreamer
 endif
 
-ifeq ($(BR2_PACKAGE_JPEG),y)
-WINE_CONF_OPTS += --with-jpeg
-WINE_DEPENDENCIES += jpeg
-else
-WINE_CONF_OPTS += --without-jpeg
-endif
-
-ifeq ($(BR2_PACKAGE_LCMS2),y)
-WINE_CONF_OPTS += --with-cms
-WINE_DEPENDENCIES += lcms2
-else
-WINE_CONF_OPTS += --without-cms
-endif
-
 ifeq ($(BR2_PACKAGE_HAS_LIBGL),y)
 WINE_CONF_OPTS += --with-opengl
 WINE_DEPENDENCIES += libgl
@@ -113,11 +116,11 @@ else
 WINE_CONF_OPTS += --without-opengl
 endif
 
-ifeq ($(BR2_PACKAGE_LIBGLU),y)
-WINE_CONF_OPTS += --with-glu
-WINE_DEPENDENCIES += libglu
+ifeq ($(BR2_PACKAGE_LIBKRB5),y)
+WINE_CONF_OPTS += --with-krb5
+WINE_DEPENDENCIES += libkrb5
 else
-WINE_CONF_OPTS += --without-glu
+WINE_CONF_OPTS += --without-krb5
 endif
 
 ifeq ($(BR2_PACKAGE_LIBPCAP),y)
@@ -127,69 +130,25 @@ else
 WINE_CONF_OPTS += --without-pcap
 endif
 
-ifeq ($(BR2_PACKAGE_LIBPNG),y)
-WINE_CONF_OPTS += --with-png
-WINE_DEPENDENCIES += libpng
+ifeq ($(BR2_PACKAGE_LIBUSB),y)
+WINE_CONF_OPTS += --with-usb
+WINE_DEPENDENCIES += libusb
 else
-WINE_CONF_OPTS += --without-png
+WINE_CONF_OPTS += --without-usb
 endif
 
 ifeq ($(BR2_PACKAGE_LIBV4L),y)
-WINE_CONF_OPTS += --with-v4l
+WINE_CONF_OPTS += --with-v4l2
 WINE_DEPENDENCIES += libv4l
 else
-WINE_CONF_OPTS += --without-v4l
+WINE_CONF_OPTS += --without-v4l2
 endif
 
-ifeq ($(BR2_PACKAGE_LIBXML2),y)
-WINE_CONF_OPTS += --with-xml
-WINE_DEPENDENCIES += libxml2
-WINE_CONF_ENV += XML2_CONFIG=$(STAGING_DIR)/usr/bin/xml2-config
+ifeq ($(BR2_PACKAGE_PCSC_LITE),y)
+WINE_CONF_OPTS += --with-pcsclite
+WINE_DEPENDENCIES += pcsc-lite
 else
-WINE_CONF_OPTS += --without-xml
-endif
-
-ifeq ($(BR2_PACKAGE_LIBXSLT),y)
-WINE_CONF_OPTS += --with-xslt
-WINE_DEPENDENCIES += libxslt
-WINE_CONF_ENV += XSLT_CONFIG=$(STAGING_DIR)/usr/bin/xslt-config
-else
-WINE_CONF_OPTS += --without-xslt
-endif
-
-ifeq ($(BR2_PACKAGE_MPG123),y)
-WINE_CONF_OPTS += --with-mpg123
-WINE_DEPENDENCIES += mpg123
-else
-WINE_CONF_OPTS += --without-mpg123
-endif
-
-ifeq ($(BR2_PACKAGE_NCURSES),y)
-WINE_CONF_OPTS += --with-curses
-WINE_DEPENDENCIES += ncurses
-else
-WINE_CONF_OPTS += --without-curses
-endif
-
-ifeq ($(BR2_PACKAGE_OPENAL),y)
-WINE_CONF_OPTS += --with-openal
-WINE_DEPENDENCIES += openal
-else
-WINE_CONF_OPTS += --without-openal
-endif
-
-ifeq ($(BR2_PACKAGE_OPENLDAP),y)
-WINE_CONF_OPTS += --with-ldap
-WINE_DEPENDENCIES += openldap
-else
-WINE_CONF_OPTS += --without-ldap
-endif
-
-ifeq ($(BR2_PACKAGE_MESA3D_OSMESA),y)
-WINE_CONF_OPTS += --with-osmesa
-WINE_DEPENDENCIES += mesa3d
-else
-WINE_CONF_OPTS += --without-osmesa
+WINE_CONF_OPTS += --without-pcsclite
 endif
 
 ifeq ($(BR2_PACKAGE_PULSEAUDIO),y)
@@ -214,11 +173,11 @@ else
 WINE_CONF_OPTS += --without-sane
 endif
 
-ifeq ($(BR2_PACKAGE_TIFF),y)
-WINE_CONF_OPTS += --with-tiff
-WINE_DEPENDENCIES += tiff
+ifeq ($(BR2_PACKAGE_SDL2),y)
+WINE_CONF_OPTS += --with-sdl
+WINE_DEPENDENCIES += sdl2
 else
-WINE_CONF_OPTS += --without-tiff
+WINE_CONF_OPTS += --without-sdl
 endif
 
 ifeq ($(BR2_PACKAGE_HAS_UDEV),y)
@@ -226,6 +185,13 @@ WINE_CONF_OPTS += --with-udev
 WINE_DEPENDENCIES += udev
 else
 WINE_CONF_OPTS += --without-udev
+endif
+
+ifeq ($(BR2_PACKAGE_WAYLAND),y)
+WINE_CONF_OPTS += --with-wayland
+WINE_DEPENDENCIES += wayland libxkbcommon
+else
+WINE_CONF_OPTS += --without-wayland
 endif
 
 ifeq ($(BR2_PACKAGE_XLIB_LIBX11),y)
@@ -254,6 +220,13 @@ WINE_CONF_OPTS += --with-xshape --with-xshm
 WINE_DEPENDENCIES += xlib_libXext
 else
 WINE_CONF_OPTS += --without-xshape --without-xshm
+endif
+
+ifeq ($(BR2_PACKAGE_XLIB_LIBXFIXES),y)
+WINE_CONF_OPTS += --with-xfixes
+WINE_DEPENDENCIES += xlib_libXfixes
+else
+WINE_CONF_OPTS += --without-xfixes
 endif
 
 ifeq ($(BR2_PACKAGE_XLIB_LIBXI),y)
@@ -291,16 +264,13 @@ else
 WINE_CONF_OPTS += --without-xxf86vm
 endif
 
-ifeq ($(BR2_PACKAGE_ZLIB),y)
-WINE_CONF_OPTS += --with-zlib
-WINE_DEPENDENCIES += zlib
-else
-WINE_CONF_OPTS += --without-zlib
-endif
-
 # host-gettext is essential for .po file support in host-wine wrc
+ifeq ($(BR2_SYSTEM_ENABLE_NLS),y)
 HOST_WINE_DEPENDENCIES += host-gettext
 HOST_WINE_CONF_OPTS += --with-gettext --with-gettextpo
+else
+HOST_WINE_CONF_OPTS += --without-gettext --without-gettextpo
+endif
 
 # Wine needs to enable 64-bit build tools on 64-bit host
 ifeq ($(HOSTARCH),x86_64)
@@ -310,14 +280,7 @@ endif
 # Wine only needs the host tools to be built, so cut-down the
 # build time by building just what we need.
 define HOST_WINE_BUILD_CMDS
-	$(HOST_MAKE_ENV) $(MAKE) -C $(@D) \
-	  tools \
-	  tools/sfnt2fon \
-	  tools/widl \
-	  tools/winebuild \
-	  tools/winegcc \
-	  tools/wmc \
-	  tools/wrc
+	$(HOST_MAKE_ENV) $(MAKE) -C $(@D) __tooldeps__
 endef
 
 # Wine only needs its host variant to be built, not that it is
@@ -334,47 +297,44 @@ HOST_WINE_CONF_OPTS += \
 	--disable-win16 \
 	--without-alsa \
 	--without-capi \
-	--without-cms \
 	--without-coreaudio \
 	--without-cups \
-	--without-curses \
 	--without-dbus \
+	--without-ffmpeg \
 	--without-fontconfig \
 	--without-gphoto \
-	--without-glu \
 	--without-gnutls \
-	--without-gsm \
+	--without-gssapi \
 	--without-gstreamer \
-	--without-hal \
-	--without-jpeg \
-	--without-ldap \
-	--without-mpg123 \
+	--without-krb5 \
+	--without-mingw \
 	--without-netapi \
-	--without-openal \
 	--without-opencl \
 	--without-opengl \
 	--without-osmesa \
 	--without-oss \
 	--without-pcap \
+	--without-pcsclite \
 	--without-pulse \
-	--without-png \
 	--without-sane \
-	--without-tiff \
-	--without-v4l \
+	--without-sdl \
+	--without-udev \
+	--without-usb \
+	--without-v4l2 \
+	--without-vulkan \
+	--without-wayland \
 	--without-x \
 	--without-xcomposite \
 	--without-xcursor \
+	--without-xfixes \
 	--without-xinerama \
 	--without-xinput \
 	--without-xinput2 \
-	--without-xml \
 	--without-xrandr \
 	--without-xrender \
 	--without-xshape \
 	--without-xshm \
-	--without-xslt \
-	--without-xxf86vm \
-	--without-zlib
+	--without-xxf86vm
 
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))

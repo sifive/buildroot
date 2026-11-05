@@ -1,2 +1,3 @@
-# Locally calculated
-sha256	e98d4e997682097f5bc2859596b9615f4cb87438db23ceb4af5e36b4424524ab  luasql-sqlite3-2.3.0-1.src.rock
+# computed by luarocks/buildroot
+sha256  803da6e49ee6e7bc3e6701d8b7453c3eb6b0b4d842ca61414c2da742cba47691  luasql-sqlite3-2.8.0-1.src.rock
+sha256  065bcbcb6cb43e4875e2ba47c91e0f9e477c754e4bfbb5e557125a1967a4ad7a  luasql/doc/us/license.html

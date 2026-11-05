@@ -1,4 +1,5 @@
-# From https://pypi.python.org/pypi?:action=show_md5&digest=1f22415a3d8da4b303182ad81c2d062e
-md5	1f22415a3d8da4b303182ad81c2d062e	pyalsaaudio-0.8.2.tar.gz
-# Locally calculated
-sha256	b6df486f1c4035041a5f3800496b86c64e48e4a7d47f94dcbca11b0187aa3a15	pyalsaaudio-0.8.2.tar.gz
+# md5, sha256 from https://pypi.org/pypi/pyalsaaudio/json
+md5  8c11664f8787e3d9900d666f15565713  pyalsaaudio-0.11.0.tar.gz
+sha256  a78a9dca33524b2c9064b34e21f5ab874272313cf324a9a77592f396a5e0fddc  pyalsaaudio-0.11.0.tar.gz
+# Locally computed sha256 checksums
+sha256  ef6ba930f96986d78082e67c817ac617b9e833d60d5a0460f24c9c674a010935  LICENSE

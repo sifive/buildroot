@@ -1,15 +1,20 @@
 #!/bin/sh
-#
-if [ "$#" -ne 0 ]; then
-    echo "Run this script to relocate the buildroot SDK at that location"
+
+if [ "$#" -gt 1 ]; then
+    echo "Usage: $0 [path]"
+    echo "Run this script to relocate the buildroot SDK to the current location"
+    echo "If [path] is given, sets the location to [path] (without moving it)"
     exit 1
 fi
 
-LOCFILE="share/buildroot/sdk-location"
-FILEPATH="$(readlink -f "$0")"
-NEWPATH="$(dirname "${FILEPATH}")"
+cd "$(dirname "$(readlink -f "$0")")"
+if [ "$#" -eq 1 ]; then
+    NEWPATH="$1"
+else
+    NEWPATH="${PWD}"
+fi
 
-cd "${NEWPATH}"
+LOCFILE="share/buildroot/sdk-location"
 if [ ! -r "${LOCFILE}" ]; then
     echo "Previous location of the buildroot SDK not found!"
     exit 1
@@ -32,15 +37,10 @@ fi
 
 echo "Relocating the buildroot SDK from ${OLDPATH} to ${NEWPATH} ..."
 
-# Make sure file uses the right language
-export LC_ALL=C
 # Replace the old path with the new one in all text files
-grep -lr "${OLDPATH}" . | while read -r FILE ; do
-    if file -b --mime-type "${FILE}" | grep -q '^text/' && [ "${FILE}" != "${LOCFILE}" ]
-    then
-        sed -i "s|${OLDPATH}|${NEWPATH}|g" "${FILE}"
-    fi
-done
+while read -r FILE ; do
+    sed -i "s|${OLDPATH}|${NEWPATH}|g" "${FILE}"
+done < share/buildroot/sdk-relocs
 
 # At the very end, we update the location file to not break the
 # SDK if this script gets interruted.

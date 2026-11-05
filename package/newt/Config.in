@@ -6,9 +6,10 @@ config BR2_PACKAGE_NEWT
 	select BR2_PACKAGE_SLANG
 	select BR2_PACKAGE_POPT
 	help
-	  Programming library for color text mode, widget based user interfaces.
+	  Programming library for color text mode, widget based user
+	  interfaces.
 
-	  http://www.redhat.com/
+	  https://gitlab.com/newt-ui/newt
 
 comment "newt needs a toolchain w/ wchar, dynamic library"
 	depends on BR2_USE_MMU

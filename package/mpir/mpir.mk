@@ -5,12 +5,17 @@
 ################################################################################
 
 MPIR_VERSION = 3.0.0
-MPIR_SITE = http://www.mpir.org
-MPIR_SOURCE = mpir-$(MPIR_VERSION).tar.bz2
+MPIR_SITE = $(call github,wbhart,mpir,refs/tags/mpir-$(MPIR_VERSION))
 MPIR_LICENSE = LGPL-3.0+
 MPIR_LICENSE_FILES = COPYING.LIB
 MPIR_INSTALL_STAGING = YES
 MPIR_DEPENDENCIES = gmp host-yasm
+# 0002-Fix-configure-failures-with-Xcode12.patch
+# 0003-fix-configure-with-gcc-14.patch
+MPIR_AUTORECONF = YES
+
+# We don't care about the documentation
+MPIR_CONF_ENV = MAKEINFO=true
 
 ifeq ($(BR2_MIPS_NABI32),y)
 MPIR_CONF_OPTS += ABI=n32
@@ -34,6 +39,10 @@ endif
 # Optimized powerpc64 code is not suitable for powerpc64le
 ifeq ($(BR2_powerpc64le),y)
 MPIR_CONF_ENV += MPN_PATH="generic"
+endif
+
+ifeq ($(BR2_ARM_INSTRUCTIONS_THUMB),y)
+MPIR_CONF_ENV += CFLAGS="$(TARGET_CFLAGS) -marm"
 endif
 
 $(eval $(autotools-package))

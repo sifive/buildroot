@@ -1,0 +1,54 @@
+From e09511b7cf91c6c00b72c568571d0b0984acd381 Mon Sep 17 00:00:00 2001
+From: Vicente Olivert Riera <Vincent.Riera@imgtec.com>
+Date: Wed, 25 Nov 2015 10:50:00 +0000
+Subject: [PATCH] mdrestore, scrub: do not do dynamic linking of libtool
+ libraries
+
+As explained in commit ece49daeff1a3cad765e106d678c608925c9d768, use
+-static-libtool-libs instead of -static to allow fallback to the dynamic
+linking for libuuid only. Otherwise the build will fail like this:
+
+ld: attempted static link of dynamic object `/usr/lib/libuuid.so'
+
+Signed-off-by: Vicente Olivert Riera <Vincent.Riera@imgtec.com>
+Upstream: Proposed: https://lore.kernel.org/linux-xfs/1448449838-47261-1-git-send-email-Vincent.Riera@imgtec.com/
+[baruch: update for v4.15.1; extend to include scrub]
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+[matt: update for v4.16.1; adjusted libunistring -> libicu]
+Signed-off-by: Matt Weber <matthew.weber@rockwellcollins.com>
+[Julien: rebased on v6.18.0]
+Signed-off-by: Julien Olivain <ju.o@free.fr>
+---
+ mdrestore/Makefile | 2 +-
+ scrub/Makefile     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/mdrestore/Makefile b/mdrestore/Makefile
+index 4a932efb..7ea1fd45 100644
+--- a/mdrestore/Makefile
++++ b/mdrestore/Makefile
+@@ -10,7 +10,7 @@ CFILES = xfs_mdrestore.c
+ 
+ LLDLIBS = $(LIBXFS) $(LIBFROG) $(LIBRT) $(LIBUUID) $(LIBURCU) $(LIBPTHREAD)
+ LTDEPENDENCIES = $(LIBXFS) $(LIBFROG)
+-LLDFLAGS = -static
++LLDFLAGS = -static-libtool-libs
+ 
+ default: depend $(LTCOMMAND)
+ 
+diff --git a/scrub/Makefile b/scrub/Makefile
+index 6375d77a..26414491 100644
+--- a/scrub/Makefile
++++ b/scrub/Makefile
+@@ -90,7 +90,7 @@ xfs_scrub.c
+ LLDLIBS += $(LIBHANDLE) $(LIBFROG) $(LIBICU_LIBS) $(LIBRT) $(LIBURCU) \
+ 	$(LIBPTHREAD)
+ LTDEPENDENCIES += $(LIBHANDLE) $(LIBFROG)
+-LLDFLAGS = -static
++LLDFLAGS = -static-libtool-libs
+ 
+ ifeq ($(HAVE_MALLINFO),yes)
+ LCFLAGS += -DHAVE_MALLINFO
+-- 
+2.52.0
+

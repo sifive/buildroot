@@ -1,3 +1,9 @@
-# From http://sourceforge.net/projects/netatalk/files/netatalk/3.1.11/
-md5 8f79ce2a275b128ebb07188766f088fc  netatalk-3.1.11.tar.bz2
-sha1 5aa7900e6f7de3c7ee812aa1130c1245d1974586  netatalk-3.1.11.tar.bz2
+# From https://sourceforge.net/projects/netatalk/files/netatalk-4-4-3/
+sha1  31ccb1a14ee976e2bf16aef7c8be8620236e36cc  netatalk-4.4.3.tar.xz
+# From https://github.com/Netatalk/netatalk/releases/download/netatalk-4-4-3/netatalk-4.4.3.tar.xz.sha256sum
+sha256  863d640ecc99f4923ead6c58e8d3406ab3a1ca9dd3b0d47ccdf6fdebb6efe3ab  netatalk-4.4.3.tar.xz
+# From https://github.com/Netatalk/netatalk/releases/download/netatalk-4-4-3/netatalk-4.4.3.tar.xz.sha512sum
+sha512  24702be0325a6071ab97951dfb3e0525c7c8997310602a9007ed246470638d66999f59ca0d5bae0457e777e08f79b45edd572b61c9263e412ba88b402b54d0c3  netatalk-4.4.3.tar.xz
+# Locally computed
+sha256  8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643  COPYING
+sha256  d13add335381938da94820bf1dfc65b2801dbff94b80d6c56b5c4e3ab996924c  COPYRIGHT

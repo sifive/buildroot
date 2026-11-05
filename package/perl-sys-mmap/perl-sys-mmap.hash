@@ -1,0 +1,7 @@
+# retrieved by scancpan from https://cpan.metacpan.org/
+md5  54b46bc153c3fd36dba79b7bab2502d8  Sys-Mmap-0.21.tar.gz
+sha256  fdec18081928b0b3ff688ec8b5d2d9bd1ffc81c2c3eb1fb3c1c56aac48a96f4c  Sys-Mmap-0.21.tar.gz
+
+# computed by scancpan
+sha256  4ac2afe465736476a06e52edcc78c72cfa0fa4d625916e58ab4f2af6c598709c  Artistic
+sha256  51c144e9a67644fa8eea0ea63dedb4e837587305b22f073eb5e279e39e7325a8  Copying

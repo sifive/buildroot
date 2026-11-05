@@ -1,3 +1,2 @@
-# From http://sourceforge.net/projects/linuxquota/files/quota-tools/4.01/ (click on info button)
-md5	5c2c31e321d2e1322ce12d69ae5c66d6	quota-4.01.tar.gz
-sha1	64d2ab8b039cfea1aa4bd9e77e8c373488a7f0bf	quota-4.01.tar.gz
+sha256  0a51b8f920254d8e83c34a4c3082b7d241f5d6fd65188afadf29859d5223ef78  quota-4.11.tar.gz
+sha256  32a5fd41e7a257f7f0373988ea8d45cebdbf376060703c242c11c000751b1203  COPYING

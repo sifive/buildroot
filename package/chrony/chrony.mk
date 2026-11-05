@@ -4,25 +4,32 @@
 #
 ################################################################################
 
-CHRONY_VERSION = 3.2
-CHRONY_SITE = http://download.tuxfamily.org/chrony
+CHRONY_VERSION = 4.9
+CHRONY_SITE = https://chrony-project.org/releases
 CHRONY_LICENSE = GPL-2.0
 CHRONY_LICENSE_FILES = COPYING
+CHRONY_CPE_ID_VENDOR = tuxfamily
+CHRONY_SELINUX_MODULES = chronyd
+CHRONY_DEPENDENCIES = host-pkgconf libcap
 
 CHRONY_CONF_OPTS = \
 	--host-system=Linux \
 	--host-machine=$(BR2_ARCH) \
 	--prefix=/usr \
-	--without-tomcrypt
+	--without-tomcrypt \
+	--with-user=chrony \
+	$(if $(BR2_PACKAGE_CHRONY_DEBUG_LOGGING),--enable-debug,--disable-debug)
 
-ifeq ($(BR2_PACKAGE_LIBCAP),y)
-CHRONY_DEPENDENCIES += libcap
-else
-CHRONY_CONF_OPTS += --without-libcap
-endif
+define CHRONY_USERS
+	chrony -1 chrony -1 * /run/chrony - - Time daemon
+endef
+
+define CHRONY_PERMISSIONS
+	/var/lib/chrony d 755 chrony chrony - - - - -
+endef
 
 ifeq ($(BR2_PACKAGE_LIBNSS),y)
-CHRONY_DEPENDENCIES += host-pkgconf libnss
+CHRONY_DEPENDENCIES += libnss
 else
 CHRONY_CONF_OPTS += --without-nss
 endif
@@ -34,16 +41,28 @@ else
 CHRONY_CONF_OPTS += --without-seccomp
 endif
 
-ifeq ($(BR2_PACKAGE_READLINE),y)
-CHRONY_DEPENDENCIES += readline
+ifeq ($(BR2_PACKAGE_LIBEDIT),y)
+CHRONY_DEPENDENCIES += libedit
 else
-CHRONY_CONF_OPTS += --disable-readline
+CHRONY_CONF_OPTS += --without-editline --disable-readline
 endif
 
 # If pps-tools is available, build it before so the package can use it
 # (HAVE_SYS_TIMEPPS_H).
 ifeq ($(BR2_PACKAGE_PPS_TOOLS),y)
 CHRONY_DEPENDENCIES += pps-tools
+endif
+
+ifeq ($(BR2_PACKAGE_GNUTLS),y)
+CHRONY_DEPENDENCIES += gnutls
+else
+CHRONY_CONF_OPTS += --without-gnutls
+endif
+
+ifeq ($(BR2_PACKAGE_NETTLE),y)
+CHRONY_DEPENDENCIES += nettle
+else
+CHRONY_CONF_OPTS += --without-nettle
 endif
 
 define CHRONY_CONFIGURE_CMDS
@@ -56,18 +75,19 @@ endef
 
 define CHRONY_INSTALL_TARGET_CMDS
 	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) DESTDIR="$(TARGET_DIR)" install
+	$(INSTALL) -D -m 644 $(@D)/examples/chrony.conf.example2 $(TARGET_DIR)/etc/chrony.conf
 endef
 
 define CHRONY_INSTALL_INIT_SYSV
-	$(INSTALL) -D -m 755 package/chrony/S49chrony $(TARGET_DIR)/etc/init.d/S49chrony
+	$(INSTALL) -D -m 755 package/chrony/S49chronyd $(TARGET_DIR)/etc/init.d/S49chronyd
 endef
 
 define CHRONY_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -D -m 644 package/chrony/chrony.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/chrony.service
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -sf ../../../../usr/lib/systemd/system/chrony.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/chrony.service
+	# advertise chrony.service to systemd-timedated
+	$(INSTALL) -D -m 644 $(CHRONY_PKGDIR)/50-chrony.list \
+		$(TARGET_DIR)/usr/lib/systemd/ntp-units.d/50-chrony.list
 endef
 
 $(eval $(generic-package))

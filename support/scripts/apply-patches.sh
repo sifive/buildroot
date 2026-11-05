@@ -46,6 +46,8 @@ patchdir=${2-../kernel-patches}
 shift 2
 patchpattern=${@-*}
 
+export TAR=${TAR:-tar}
+
 # use a well defined sorting order
 export LC_COLLATE=C
 
@@ -113,13 +115,8 @@ function apply_patch {
         echo "  to be applied  : ${path}/${patch}"
         exit 1
     fi
-    if grep -q "^rename from" ${path}/${patch} && \
-       grep -q "^rename to" ${path}/${patch} ; then
-        echo "Error: patch contains some renames, not supported by old patch versions"
-        exit 1
-    fi
     echo "${path}/${patch}" >> ${builddir}/.applied_patches_list
-    ${uncomp} "${path}/$patch" | patch -g0 -p1 -E -d "${builddir}" -t -N $silent
+    ${uncomp} "${path}/$patch" | patch -F0 -g0 -p1 --no-backup-if-mismatch -d "${builddir}" -t -N $silent
     if [ $? != 0 ] ; then
         echo "Patch failed!  Please fix ${patch}!"
         exit 1
@@ -151,7 +148,7 @@ function scan_patchdir {
                 unpackedarchivedir="$builddir/.patches-$(basename $i)-unpacked"
                 rm -rf "$unpackedarchivedir" 2> /dev/null
                 mkdir "$unpackedarchivedir"
-                tar -C "$unpackedarchivedir" -xaf "${path}/$i"
+                ${TAR} -C "$unpackedarchivedir" -xaf "${path}/$i"
                 scan_patchdir "$unpackedarchivedir"
             else
                 apply_patch "$path" "$i"
@@ -168,6 +165,3 @@ if [ "`find $builddir/ '(' -name '*.rej' -o -name '.*.rej' ')' -print`" ] ; then
     echo "Aborting.  Reject files found."
     exit 1
 fi
-
-# Remove backup files
-find $builddir/ '(' -name '*.orig' -o -name '.*.orig' ')' -exec rm -f {} \;

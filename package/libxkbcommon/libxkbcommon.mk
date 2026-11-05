@@ -4,22 +4,41 @@
 #
 ################################################################################
 
-LIBXKBCOMMON_VERSION = 0.7.1
-LIBXKBCOMMON_SITE = http://xkbcommon.org/download
-LIBXKBCOMMON_SOURCE = libxkbcommon-$(LIBXKBCOMMON_VERSION).tar.xz
+LIBXKBCOMMON_VERSION = 1.9.2
+LIBXKBCOMMON_SITE = $(call github,xkbcommon,libxkbcommon,xkbcommon-$(LIBXKBCOMMON_VERSION))
 LIBXKBCOMMON_LICENSE = MIT/X11
 LIBXKBCOMMON_LICENSE_FILES = LICENSE
+LIBXKBCOMMON_CPE_ID_VENDOR = xkbcommon
 LIBXKBCOMMON_INSTALL_STAGING = YES
 LIBXKBCOMMON_DEPENDENCIES = host-bison host-flex
-LIBXKBCOMMON_CONF_OPTS = --disable-wayland
-# uses C99 features
-LIBXKBCOMMON_CONF_ENV = CFLAGS="$(TARGET_CFLAGS) -std=gnu99"
+LIBXKBCOMMON_CONF_OPTS = \
+	-Denable-docs=false
 
-ifeq ($(BR2_PACKAGE_XORG7),y)
-LIBXKBCOMMON_CONF_OPTS += --enable-x11
-LIBXKBCOMMON_DEPENDENCIES += libxcb
+ifeq ($(BR2_PACKAGE_LIBXML2),y)
+LIBXKBCOMMON_CONF_OPTS += -Denable-xkbregistry=true
+LIBXKBCOMMON_DEPENDENCIES += libxml2
 else
-LIBXKBCOMMON_CONF_OPTS += --disable-x11
+LIBXKBCOMMON_CONF_OPTS += -Denable-xkbregistry=false
 endif
 
-$(eval $(autotools-package))
+ifeq ($(BR2_PACKAGE_XORG7),y)
+LIBXKBCOMMON_CONF_OPTS += -Denable-x11=true
+LIBXKBCOMMON_DEPENDENCIES += libxcb
+else
+LIBXKBCOMMON_CONF_OPTS += -Denable-x11=false
+endif
+
+ifeq ($(BR2_PACKAGE_LIBXKBCOMMON_TOOLS),y)
+LIBXKBCOMMON_CONF_OPTS += -Denable-tools=true
+else
+LIBXKBCOMMON_CONF_OPTS += -Denable-tools=false
+endif
+
+ifeq ($(BR2_PACKAGE_LIBXKBCOMMON_TOOLS)$(BR2_PACKAGE_WAYLAND),yy)
+LIBXKBCOMMON_CONF_OPTS += -Denable-wayland=true
+LIBXKBCOMMON_DEPENDENCIES += wayland wayland-protocols
+else
+LIBXKBCOMMON_CONF_OPTS += -Denable-wayland=false
+endif
+
+$(eval $(meson-package))

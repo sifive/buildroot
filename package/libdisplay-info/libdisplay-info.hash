@@ -1,0 +1,5 @@
+# From https://lore.freedesktop.org/wayland-devel/m8VW4lhPjVf_0WLHD9BxrcFL67zweO2GpHqTEWBsrK4SQzFV1iuVJ9I3I_hAASg9hNA5hWmQxxEFetyGsNOtM7Z5Cwefi66h-FzVKMGKkIs=@emersion.fr/T/#u
+sha256  43b180baa143e2035654759d84e2b2f5ee77d5fe817c423838c7fe59c0d68459  libdisplay-info-0.4.0.tar.xz
+sha512  3f237788b1b2c6154f81e7a905eae778e21fa1e94e6a2e025ad6ad4971146cf312e2e663aae46f4808a180c77e650d9ab627abee0e352c327dc7d6798887af24  libdisplay-info-0.4.0.tar.xz
+# Locally computed
+sha256  15b396244e58830c5614b9394f4deccfe684970cd507f299383ab57ad339eedd  LICENSE

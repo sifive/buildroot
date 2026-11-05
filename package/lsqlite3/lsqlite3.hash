@@ -1,2 +1,2 @@
-# Locally calculated
-sha256	e6eb64a7ca3727c3093f3c37341d8ecadf9eac913e468eae413828476b19c225  lsqlite3-0.9.4-2.src.rock
+# computed by luarocks/buildroot
+sha256  29889cd8366849128d02e6080178af91b776b01ffb22564b9508a0a4e4888af1  lsqlite3-0.9.7-1.src.rock

@@ -1,3 +1,6 @@
-# retrieved by scancpan from http://cpan.metacpan.org/
-md5    7e7c6cf8184df4d49500a003d998764a Net-DNS-1.12.tar.gz
-sha256 25ff01fe79de3fb759d190fadb0971c326f4afc2e6a4541d10d624f65b34c1ff Net-DNS-1.12.tar.gz
+# retrieved by scancpan from https://cpan.metacpan.org/
+md5  5bd876dca96f71ab261fa6f25eacad21  Net-DNS-1.57.tar.gz
+sha256  7c98de329cb5d6a99abbb03aaad2866cb041092ed9936a7246908e170005b058  Net-DNS-1.57.tar.gz
+
+# computed by scancpan
+sha256  1e44fcf65509b47a251eda0ce1f8bd6aefa13517e38cb1e95b8d36120fb15452  LICENSE

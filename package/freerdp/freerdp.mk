@@ -4,23 +4,72 @@
 #
 ################################################################################
 
-# Changeset on the master branch
-FREERDP_VERSION = 17834af7bb378f85a3b3cc4dcadaa5125a337e16
-FREERDP_SITE = $(call github,FreeRDP,FreeRDP,$(FREERDP_VERSION))
+# Latest, and probably last, release on the stable-2.0 branch
+FREERDP_VERSION = 2.11.8
+FREERDP_SITE = https://github.com/FreeRDP/FreeRDP
+FREERDP_SITE_METHOD = git
 FREERDP_DEPENDENCIES = libglib2 openssl zlib
 FREERDP_LICENSE = Apache-2.0
 FREERDP_LICENSE_FILES = LICENSE
+FREERDP_CPE_ID_VENDOR = freerdp
+
+# Introduced in v3.0.0-beta1
+# https://security-tracker.debian.org/tracker/CVE-2024-32662
+FREERDP_IGNORE_CVES += CVE-2024-32662
+
+# Windows only
+# https://security-tracker.debian.org/tracker/CVE-2025-68118
+FREERDP_IGNORE_CVES += CVE-2025-68118
+
+# 0009-fix-missing-check-in-rdp-write-logon-info-v1.patch
+FREERDP_IGNORE_CVES += CVE-2024-32661
+
+# 0010-fix-decoder-length-checks.patch
+FREERDP_IGNORE_CVES += CVE-2026-23530
+
+# 0011-fix-missing-length-checks.patch
+# 0012-check-clear-decomress-glyphData.patch
+FREERDP_IGNORE_CVES += CVE-2026-23531
+
+# 0013-properly-clamp-SurfaceToSurface.patch
+FREERDP_IGNORE_CVES += CVE-2026-23532
+
+# 0014-fix-clear-resize-buffer-checks.patch
+FREERDP_IGNORE_CVES += CVE-2026-23533
+
+# 0015-fix-off-by-one-length-check.patch
+FREERDP_IGNORE_CVES += CVE-2026-23534
+
+# 0016-fix-missing-NULL-check.patch
+FREERDP_IGNORE_CVES += CVE-2026-23948
+
+# 0017-do-not-free-MsConfig-on-failure.patch
+FREERDP_IGNORE_CVES += CVE-2026-24675
+
+# 0018-reset-audin-format.patch
+FREERDP_IGNORE_CVES += CVE-2026-24676
+
+# 0019-ensure-InterfaceNumber-is-within-range.patch
+FREERDP_IGNORE_CVES += CVE-2026-24679
+
+# 0020-cancel-all-usb-transfers-on-channel-close.patch
+FREERDP_IGNORE_CVES += CVE-2026-24681
+
+# 0021-fix-audin-server-recv-formats-cleanup.patch
+FREERDP_IGNORE_CVES += CVE-2026-24682
+
+# 0022-lock-context-when-updating-listener.patch
+FREERDP_IGNORE_CVES += CVE-2026-24683
+
+# 0023-terminate-thread-before-free.patch
+# 0024-only-clean-up-thread-before-free.patch
+FREERDP_IGNORE_CVES += CVE-2026-24684
 
 FREERDP_INSTALL_STAGING = YES
 
-FREERDP_CONF_OPTS = -DWITH_MANPAGES=OFF -Wno-dev
-
-ifeq ($(BR2_PACKAGE_FREERDP_GSTREAMER),y)
-FREERDP_CONF_OPTS += -DWITH_GSTREAMER_0_10=ON
-FREERDP_DEPENDENCIES += gstreamer gst-plugins-base libxml2 host-pkgconf
-else
-FREERDP_CONF_OPTS += -DWITH_GSTREAMER_0_10=OFF
-endif
+FREERDP_CONF_OPTS = \
+	-DCMAKE_C_FLAGS="$(TARGET_CFLAGS) -Wno-incompatible-pointer-types" \
+	-DWITH_MANPAGES=OFF -Wno-dev -DWITH_GSTREAMER_0_10=OFF
 
 ifeq ($(BR2_PACKAGE_FREERDP_GSTREAMER1),y)
 FREERDP_CONF_OPTS += -DWITH_GSTREAMER_1_0=ON
@@ -50,11 +99,31 @@ else
 FREERDP_CONF_OPTS += -DWITH_ALSA=OFF
 endif
 
+ifeq ($(BR2_PACKAGE_LIBEXECINFO),y)
+FREERDP_CONF_OPTS += -DCMAKE_EXE_LINKER_FLAGS=-lexecinfo
+FREERDP_DEPENDENCIES += libexecinfo
+endif
+
+ifeq ($(BR2_PACKAGE_LIBUSB),y)
+FREERDP_CONF_OPTS += -DCHANNEL_URBDRC=ON
+FREERDP_DEPENDENCIES += libusb
+else
+FREERDP_CONF_OPTS += -DCHANNEL_URBDRC=OFF
+endif
+
 ifeq ($(BR2_PACKAGE_PULSEAUDIO),y)
-FREERDP_CONF_OPTS += -DWITH_PULSEAUDIO=ON
+FREERDP_CONF_OPTS += -DWITH_PULSE=ON
 FREERDP_DEPENDENCIES += pulseaudio
 else
-FREERDP_CONF_OPTS += -DWITH_PULSEAUDIO=OFF
+FREERDP_CONF_OPTS += -DWITH_PULSE=OFF
+endif
+
+# For the systemd journal
+ifeq ($(BR2_PACKAGE_SYSTEMD),y)
+FREERDP_CONF_OPTS += -DWITH_LIBSYSTEMD=ON
+FREERDP_DEPENDENCIES += systemd
+else
+FREERDP_CONF_OPTS += -DWITH_LIBSYSTEMD=OFF
 endif
 
 ifeq ($(BR2_ARM_CPU_HAS_NEON),y)
@@ -70,7 +139,7 @@ FREERDP_CONF_OPTS += -DWITH_SSE2=OFF
 endif
 
 ifeq ($(BR2_arm)$(BR2_armeb),y)
-FREERDP_CONF_OPTS += -DARM_FP_ABI=$(call qstrip,$(BR2_GCC_TARGET_FLOAT_ABI))
+FREERDP_CONF_OPTS += -DARM_FP_ABI=$(GCC_TARGET_FLOAT_ABI)
 endif
 
 #---------------------------------------
@@ -191,9 +260,11 @@ else
 FREERDP_CONF_OPTS += -DWITH_XV=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_WAYLAND),y)
-FREERDP_DEPENDENCIES += wayland
-FREERDP_CONF_OPTS += -DWITH_WAYLAND=ON
+ifeq ($(BR2_PACKAGE_FREERDP_CLIENT_WL),y)
+FREERDP_DEPENDENCIES += wayland libxkbcommon
+FREERDP_CONF_OPTS += \
+	-DWITH_WAYLAND=ON \
+	-DWAYLAND_SCANNER=$(HOST_DIR)/bin/wayland-scanner
 else
 FREERDP_CONF_OPTS += -DWITH_WAYLAND=OFF
 endif

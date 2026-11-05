@@ -4,20 +4,35 @@
 #
 ################################################################################
 
-LUAJIT_VERSION = 2.0.5
-LUAJIT_SOURCE = LuaJIT-$(LUAJIT_VERSION).tar.gz
-LUAJIT_SITE = http://luajit.org/download
+LUAJIT_VERSION = 707c12bf00dafdfd3899b1a6c36435dbbf6c7022
+LUAJIT_SITE = $(call github,LuaJIT,LuaJIT,$(LUAJIT_VERSION))
 LUAJIT_LICENSE = MIT
 LUAJIT_LICENSE_FILES = COPYRIGHT
+LUAJIT_CPE_ID_VENDOR = luajit
+LUAJIT_CPE_ID_VERSION = 2.1.0
+LUAJIT_CPE_ID_UPDATE = beta3
+
+# Fixed in 53f82e6e2e858a0a62fd1a2ff47e9866693382e6
+LUAJIT_IGNORE_CVES += CVE-2020-15890
+
+# Fixed in e296f56b825c688c3530a981dc6b495d972f3d01
+LUAJIT_IGNORE_CVES += CVE-2020-24372
+
+# Fixed in 343ce0edaf3906a62022936175b2f5410024cbfc
+LUAJIT_IGNORE_CVES += CVE-2024-25176
+
+# Fixed in 85b4fed0b0353dd78c8c875c2f562d522a2b310f
+LUAJIT_IGNORE_CVES += CVE-2024-25177
+
+# Fixed in defe61a56751a0db5f00ff3ab7b8f45436ba74c8
+LUAJIT_IGNORE_CVES += CVE-2024-25178
 
 LUAJIT_INSTALL_STAGING = YES
 
 LUAJIT_PROVIDES = luainterpreter
 
-ifeq ($(BR2_STATIC_LIBS),y)
-LUAJIT_BUILDMODE = static
-else
-LUAJIT_BUILDMODE = dynamic
+ifeq ($(BR2_PACKAGE_LUAJIT_COMPAT52),y)
+LUAJIT_XCFLAGS += -DLUAJIT_ENABLE_LUA52COMPAT
 endif
 
 # The luajit build procedure requires the host compiler to have the
@@ -29,8 +44,10 @@ endif
 # libraries are installed.
 ifeq ($(BR2_ARCH_IS_64),y)
 LUAJIT_HOST_CC = $(HOSTCC)
+# There is no LUAJIT_ENABLE_GC64 option.
 else
 LUAJIT_HOST_CC = $(HOSTCC) -m32
+LUAJIT_XCFLAGS += -DLUAJIT_DISABLE_GC64
 endif
 
 # We unfortunately can't use TARGET_CONFIGURE_OPTS, because the luajit
@@ -47,7 +64,8 @@ define LUAJIT_BUILD_CMDS
 		HOST_CC="$(LUAJIT_HOST_CC)" \
 		HOST_CFLAGS="$(HOST_CFLAGS)" \
 		HOST_LDFLAGS="$(HOST_LDFLAGS)" \
-		BUILDMODE=$(LUAJIT_BUILDMODE) \
+		BUILDMODE=dynamic \
+		XCFLAGS="$(LUAJIT_XCFLAGS)" \
 		-C $(@D) amalg
 endef
 
@@ -68,6 +86,7 @@ LUAJIT_POST_INSTALL_TARGET_HOOKS += LUAJIT_INSTALL_SYMLINK
 define HOST_LUAJIT_BUILD_CMDS
 	$(HOST_MAKE_ENV) $(MAKE) PREFIX="$(HOST_DIR)" BUILDMODE=dynamic \
 		TARGET_LDFLAGS="$(HOST_LDFLAGS)" \
+		XCFLAGS="$(LUAJIT_XCFLAGS)" \
 		-C $(@D) amalg
 endef
 

@@ -5,25 +5,35 @@
 ################################################################################
 
 LIBMAD_VERSION = 0.15.1b
-LIBMAD_SITE = http://downloads.sourceforge.net/project/mad/libmad/$(LIBMAD_VERSION)
+LIBMAD_SOURCE = libmad_$(LIBMAD_VERSION).orig.tar.gz
+LIBMAD_SITE = \
+	http://snapshot.debian.org/archive/debian/20190310T213528Z/pool/main/libm/libmad
 LIBMAD_INSTALL_STAGING = YES
-LIBMAD_LIBTOOL_PATCH = NO
 LIBMAD_LICENSE = GPL-2.0+
 LIBMAD_LICENSE_FILES = COPYING
-LIBMAD_PATCH = \
-	https://sources.debian.net/data/main/libm/libmad/0.15.1b-8/debian/patches/frame_length.diff
 
-define LIBMAD_PREVENT_AUTOMAKE
-	# Prevent automake from running.
-	(cd $(@D); touch -c config* aclocal.m4 Makefile*);
-endef
+# 0004-md_size.patch
+LIBMAD_IGNORE_CVES += CVE-2017-8372 CVE-2017-8373
+
+# 0005-length-check.patch
+LIBMAD_IGNORE_CVES += CVE-2017-8374
+
+# Force autoreconf to be able to use a more recent libtool script, that
+# is able to properly behave in the face of a missing C++ compiler.
+LIBMAD_AUTORECONF = YES
+
+# libmad has some assembly function that is not present in Thumb mode:
+# Error: selected processor does not support `smull r6,r7,r3,r1' in Thumb mode
+# so, we deactivate Thumb mode
+ifeq ($(BR2_ARM_INSTRUCTIONS_THUMB),y)
+LIBMAD_CONF_ENV += CFLAGS="$(TARGET_CFLAGS) -marm"
+endif
 
 define LIBMAD_INSTALL_STAGING_PC
 	$(INSTALL) -D package/libmad/mad.pc \
 		$(STAGING_DIR)/usr/lib/pkgconfig/mad.pc
 endef
 
-LIBMAD_POST_PATCH_HOOKS += LIBMAD_PREVENT_AUTOMAKE
 LIBMAD_POST_INSTALL_STAGING_HOOKS += LIBMAD_INSTALL_STAGING_PC
 
 LIBMAD_CONF_OPTS = \

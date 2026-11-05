@@ -4,14 +4,17 @@
 #
 ################################################################################
 
-TRINITY_VERSION = 1.7
-TRINITY_SITE = http://codemonkey.org.uk/projects/trinity
-TRINITY_SOURCE = trinity-$(TRINITY_VERSION).tar.xz
+TRINITY_VERSION = v1.9-82-g294c46522620afffd7b57af7ef743131ff55a488
+TRINITY_SITE = $(call github,kernelslacker,trinity,$(TRINITY_VERSION))
 TRINITY_LICENSE = GPL-2.0
 TRINITY_LICENSE_FILES = COPYING
+TRINITY_CPE_ID_VALID = YES
 
-ifeq ($(BR2_PACKAGE_BTRFS_PROGS),y)
-TRINITY_DEPENDENCIES += btrfs-progs
+TRINITY_LDFLAGS = $(TARGET_LDFLAGS)
+
+ifeq ($(BR2_PACKAGE_LIBEXECINFO),y)
+TRINITY_DEPENDENCIES += libexecinfo
+TRINITY_LDFLAGS += -lexecinfo
 endif
 
 define TRINITY_CONFIGURE_CMDS
@@ -19,11 +22,12 @@ define TRINITY_CONFIGURE_CMDS
 endef
 
 define TRINITY_BUILD_CMDS
-	$(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D)
+	$(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D) LDFLAGS="$(TRINITY_LDFLAGS)"
 endef
 
 define TRINITY_INSTALL_TARGET_CMDS
-	$(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D) DESTDIR=$(TARGET_DIR)/usr install
+	$(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D) \
+		LDFLAGS="$(TRINITY_LDFLAGS)" DESTDIR=$(TARGET_DIR)/usr install
 endef
 
 # Install helper scripts

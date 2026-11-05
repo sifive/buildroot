@@ -4,11 +4,15 @@
 #
 ################################################################################
 
-LIBBSD_VERSION = 0.8.3
+LIBBSD_VERSION = 0.12.2
 LIBBSD_SOURCE = libbsd-$(LIBBSD_VERSION).tar.xz
-LIBBSD_SITE = http://libbsd.freedesktop.org/releases
-LIBBSD_LICENSE = BSD-3-Clause, MIT
+LIBBSD_SITE = https://libbsd.freedesktop.org/releases
+LIBBSD_LICENSE = BSD-2-Clause, BSD-3-Clause, BSD-5-Clause, \
+		MIT, ISC, Beerware
 LIBBSD_LICENSE_FILES = COPYING
+LIBBSD_CPE_ID_VENDOR = freedesktop
 LIBBSD_INSTALL_STAGING = YES
+LIBBSD_DEPENDENCIES = libmd
+LIBBSD_AUTORECONF = YES
 
 $(eval $(autotools-package))

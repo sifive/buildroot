@@ -1,5 +1,5 @@
 # From https://www.gnupg.org/download/integrity_check.html
-sha1 dd35f00da45602afe81e01f4d60c40bbdd826fe6  libgcrypt-1.8.1.tar.bz2
-# Locally calculated after checking signature
-# https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.8.1.tar.bz2.sig
-sha256  7a2875f8b1ae0301732e878c0cca2c9664ff09ef71408f085c50e332656a78b3  libgcrypt-1.8.1.tar.bz2
+sha1  b4654d75f0e5d0850cc699f02c9b44a06367502f  libgcrypt-1.12.3.tar.bz2
+sha256  98d1b0b3202d2b03fa754a35aa3cbbfcf526a3260d8d2ee213748001b1043006  libgcrypt-1.12.3.tar.bz2
+# Locally calculated
+sha256  20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95  COPYING.LIB

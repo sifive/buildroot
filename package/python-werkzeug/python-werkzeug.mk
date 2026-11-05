@@ -4,11 +4,13 @@
 #
 ################################################################################
 
-PYTHON_WERKZEUG_VERSION = 0.12.2
-PYTHON_WERKZEUG_SOURCE = Werkzeug-$(PYTHON_WERKZEUG_VERSION).tar.gz
-PYTHON_WERKZEUG_SITE = https://pypi.python.org/packages/56/41/c095a77eb2dd69bf278dd664a97d3416af04e9ba1a00b8c138f772741d31
-PYTHON_WERKZEUG_SETUP_TYPE = setuptools
+PYTHON_WERKZEUG_VERSION = 3.1.9
+PYTHON_WERKZEUG_SOURCE = werkzeug-$(PYTHON_WERKZEUG_VERSION).tar.gz
+PYTHON_WERKZEUG_SITE = https://files.pythonhosted.org/packages/a4/34/4dd12fc8bb7d61c91467ec3efe415ffa7d5456f799954b40c5bbaeae470e
+PYTHON_WERKZEUG_SETUP_TYPE = flit
 PYTHON_WERKZEUG_LICENSE = BSD-3-Clause
-PYTHON_WERKZEUG_LICENSE_FILES = LICENSE
+PYTHON_WERKZEUG_LICENSE_FILES = LICENSE.txt
+PYTHON_WERKZEUG_CPE_ID_VENDOR = palletsprojects
+PYTHON_WERKZEUG_CPE_ID_PRODUCT = werkzeug
 
 $(eval $(python-package))

@@ -1,3 +1,5 @@
-# md5 from https://pypi.python.org/pypi/click/json, sha256 locally computed
-md5 fc4cc00c4863833230d3af92af48abd4 click-6.7.tar.gz
-sha256 f15516df478d5a56180fbf80e68f206010e6d160fc39fa508b65e035fd75130b click-6.7.tar.gz
+# md5, sha256 from https://pypi.org/pypi/click/json
+md5  39f57e4f423de0d075dd968c29b01539  click-8.5.0.tar.gz
+sha256  ba0d2089de75ea0310e2dde03160e6ca10009947fb95a182f9b54021bb272e34  click-8.5.0.tar.gz
+# Locally computed sha256 checksums
+sha256  9a8ad106a394e853bfe21f42f4e72d592819a22805d991b5f3275029292b658d  LICENSE.txt

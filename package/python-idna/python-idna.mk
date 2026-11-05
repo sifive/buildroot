@@ -4,11 +4,12 @@
 #
 ################################################################################
 
-PYTHON_IDNA_VERSION = 2.5
+PYTHON_IDNA_VERSION = 3.20
 PYTHON_IDNA_SOURCE = idna-$(PYTHON_IDNA_VERSION).tar.gz
-PYTHON_IDNA_SITE = https://pypi.python.org/packages/d8/82/28a51052215014efc07feac7330ed758702fc0581347098a81699b5281cb
-PYTHON_IDNA_LICENSE =  BSD-3-Clause
-PYTHON_IDNA_LICENSE_FILES = LICENSE.rst
-PYTHON_IDNA_SETUP_TYPE = setuptools
+PYTHON_IDNA_SITE = https://files.pythonhosted.org/packages/f5/08/8eea9d4b8302028f3abb2c0813953f7aec26d33b7a8960ed760e65ff29fa
+PYTHON_IDNA_LICENSE = BSD-3-Clause
+PYTHON_IDNA_LICENSE_FILES = LICENSE.md
+PYTHON_IDNA_SETUP_TYPE = flit
 
 $(eval $(python-package))
+$(eval $(host-python-package))

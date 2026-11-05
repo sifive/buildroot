@@ -1,3 +1,10 @@
-# From http://lttng.org/files/lttng-tools/lttng-tools-2.9.5.tar.bz2.{md5,sha1}
-md5 051224eb991aee07f8721ff1877d0b96  lttng-tools-2.9.5.tar.bz2
-sha1 b988b237f34baa3916242dc9141aa61470e99dfd  lttng-tools-2.9.5.tar.bz2
+# From https://lttng.org/files/lttng-tools/lttng-tools-2.16.0.tar.bz2.sha256
+sha256  b8b3244894e49e773d4942b8899f768057974edf75c18dbb48b65bb123c7b2c7  lttng-tools-2.16.0.tar.bz2
+
+# Locally computed
+sha256  7fdd1784ff7fd28680ec50aa0f198791aaf694dfbce1062021f459ee329001d7  LICENSE
+sha256  6313108c23efffa36948f8b2cff1560a5935373b527b0e1a837cc77e6ed1bacd  LICENSES/BSD-2-Clause.txt
+sha256  7a83b1aeb460458db9a4bd521d7f237c45b1650f6e60ea5ffc71e49472454de3  LICENSES/BSD-3-Clause.txt
+sha256  aaf135472f81c5b4a0dca9367e5bb5e9750032b5bebe5442b36e4c0a47430df3  LICENSES/GPL-2.0-only.txt
+sha256  fa6f36630bb1e0c571d34b2bbdf188d08495c9dbf58f28cac112f303fc1f58fb  LICENSES/LGPL-2.1-only.txt
+sha256  323c587d0ccf10e376f8bf9a7f31fb4ca6078105194b42e0b1e0ee2bc9bde71f  LICENSES/MIT.txt

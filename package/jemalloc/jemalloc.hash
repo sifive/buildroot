@@ -1,2 +1,4 @@
+# From https://github.com/jemalloc/jemalloc/releases/tag/5.3.1
+sha256  3826bc80232f22ed5c4662f3034f799ca316e819103bdc7bb99018a421706f92  jemalloc-5.3.1.tar.bz2
 # Locally calculated
-sha256 4814781d395b0ef093b21a08e8e6e0bd3dab8762f9935bbfb71679b0dea7c3e9  jemalloc-5.0.1.tar.bz2
+sha256  94aa2caa98c25d942f58b956c71dba6a99ff98fc3a31cbc669fe2a4cd0268b53  COPYING

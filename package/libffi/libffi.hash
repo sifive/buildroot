@@ -1,2 +1,4 @@
-# From ftp://sourceware.org/pub/libffi/sha512.sum
-sha512	980ca30a8d76f963fca722432b1fe5af77d7a4e4d2eac5144fbc5374d4c596609a293440573f4294207e1bdd9fda80ad1e1cafb2ffb543df5a275bc3bd546483  libffi-3.2.1.tar.gz
+# From https://github.com/libffi/libffi/releases/tag/v3.8.0
+sha256  7da3e2d9a171eb0a038f592ecad3ff2bb2550f3496d87b3b29ad0cf4430c0db4  libffi-3.8.0.tar.gz
+# License files, locally calculated
+sha256  17b64dc60f3b6897a60f971e288b973f655c2edcdf08b25f3c3dd5549857881c  LICENSE

@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-VBOOT_UTILS_VERSION = bbdd62f9b030db7ad8eef789aaf58a7ff9a25656
+VBOOT_UTILS_VERSION = 042312c6e7fce9dd106b329be0ecb51a8a347337
 VBOOT_UTILS_SITE = https://chromium.googlesource.com/chromiumos/platform/vboot_reference
 VBOOT_UTILS_SITE_METHOD = git
 VBOOT_UTILS_LICENSE = BSD-3-Clause
@@ -21,17 +21,26 @@ HOST_VBOOT_UTILS_DEPENDENCIES = host-openssl host-util-linux host-pkgconf
 # media partitioning.
 #
 # make target for futility is "futil".
+#
+# The value of ARCH is only relevant for crossystem (a target tool) and
+# does not affect futil or cgpt in any way as long as it is one of the
+# supported targets.
+
+HOST_VBOOT_UTILS_MAKE_OPTS = USE_FLASHROM=0
 
 define HOST_VBOOT_UTILS_BUILD_CMDS
-	$(HOST_MAKE_ENV) $(MAKE) -C $(@D) \
+	$(HOST_MAKE_ENV) $(MAKE) $(HOST_VBOOT_UTILS_MAKE_OPTS) -C $(@D) \
 		CC="$(HOSTCC)" \
-		CFLAGS="$(HOST_CFLAGS) -D_LARGEFILE64_SOURCE -D_GNU_SOURCE" \
+		CPPFLAGS="$(HOST_CFLAGS) -D_LARGEFILE64_SOURCE -D_GNU_SOURCE" \
 		LDFLAGS="$(HOST_LDFLAGS)" \
+		WERROR="" \
+		ARCH=arm \
 		futil cgpt
 endef
 
 define HOST_VBOOT_UTILS_INSTALL_CMDS
-	$(HOST_MAKE_ENV) $(MAKE) -C $(@D) DESTDIR=$(HOST_DIR) \
+	$(HOST_MAKE_ENV) $(MAKE) $(HOST_VBOOT_UTILS_MAKE_OPTS) -C $(@D) \
+		DESTDIR=$(HOST_DIR) \
 		futil_install cgpt_install devkeys_install
 endef
 

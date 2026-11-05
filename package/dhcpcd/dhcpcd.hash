@@ -1,2 +1,4 @@
-# Locally calculated from download (no sig, hash)
-sha256	6f9674dc7e27e936cc787175404a6171618675ecfb6903ab9887b1b66a87d69e	dhcpcd-6.11.5.tar.xz
+# sha256 from https://github.com/NetworkConfiguration/dhcpcd/releases/tag/v10.5.2
+sha256  3e476657fdb6eeb38b277da3a48d0ac0113ecce5858ebdcddff2b629faed52b4  dhcpcd-10.5.2.tar.xz
+# Locally calculated
+sha256  3aeab006b01c1573b42d4440d7edad0adfe61ad05848ca82e02e745424a2b4fa  LICENSE

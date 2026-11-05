@@ -1,2 +1,5 @@
-# From http://download.videolan.org/pub/videolan/libdvdread/5.0.0/libdvdread-5.0.3.tar.bz2.sha256
-sha256	321cdf2dbdc83c96572bc583cd27d8c660ddb540ff16672ecb28607d018ed82b	libdvdread-5.0.3.tar.bz2
+# From https://download.videolan.org/pub/videolan/libdvdread/7.1.1/libdvdread-7.1.1.tar.xz.sha256
+sha256  a0d47876548bec806774bbf8dbf20bb19ba139464383156b32eb8e59915b90a9  libdvdread-7.1.1.tar.xz
+
+# Hash for license file:
+sha256  d6cb0e9e560f51085556949a84af12b79a00f10ab8b66c752537faf7cd665572  COPYING

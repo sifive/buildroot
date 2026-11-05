@@ -4,14 +4,20 @@
 #
 ################################################################################
 
-UCLIBC_NG_TEST_VERSION = c4d54bde7772b55df04399ecb355769c5ac31015
-UCLIBC_NG_TEST_SITE = git://uclibc-ng.org/git/uclibc-ng-test
+UCLIBC_NG_TEST_VERSION = 132c6134d69146bcafbdda68ae3a9cbd9f8fb921
+UCLIBC_NG_TEST_SITE = https://git.uclibc-ng.org/git/uclibc-ng-test.git
+UCLIBC_NG_TEST_SITE_METHOD = git
 UCLIBC_NG_TEST_LICENSE = LGPL-2.1+
 UCLIBC_NG_TEST_LICENSE_FILES = COPYING.LIB
 
 # the math tests are recently synced from glibc and need more adaption before
 # regular testing is possible
 UCLIBC_NG_TEST_MAKE_ENV += NO_MATH=1
+
+# obsolete encrypt and setkey functions are not available since glibc 2.28
+ifeq ($(BR2_TOOLCHAIN_USES_GLIBC),y)
+UCLIBC_NG_TEST_MAKE_ENV += NO_CRYPT=1
+endif
 
 # locale tests are not compatible with musl, yet
 ifeq ($(BR2_TOOLCHAIN_USES_MUSL),y)
@@ -32,6 +38,10 @@ endif
 # most NPTL/TLS tests use dlopen
 ifeq ($(BR2_STATIC_LIBS),y)
 UCLIBC_NG_TEST_MAKE_ENV += NO_TLS=1 NO_NPTL=1 NO_DL=1
+endif
+# no TLS macros available
+ifeq ($(BR2_s390x),y)
+UCLIBC_NG_TEST_MAKE_ENV += NO_TLS=1
 endif
 
 # to execute tests in a deterministic order, call test_gen separately

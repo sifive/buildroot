@@ -1,0 +1,5 @@
+# md5, sha256 from https://pypi.org/pypi/bidict/0.24.1/json
+md5  e7cf785588cc0e90422def264ee195a6  bidict-0.24.1.tar.gz
+sha256  4dca6c17f0b01700e9f24359daa5ebabf7be022d99f4cb2a257b6af2a5076c88  bidict-0.24.1.tar.gz
+# Locally computed sha256 checksums
+sha256  099b9dcb04485b32cf93aba82b303e099bcf98ab2476fae716d22c930fd6b915  LICENSE

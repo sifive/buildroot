@@ -1,2 +1,5 @@
 # https://github.com/SELinuxProject/selinux/wiki/Releases
-sha256 68891b376f5048edc53c6ccb2fca44da3dc7f4563f4b6894e201d70c04a05a29 policycoreutils-2.6.tar.gz
+sha256  8dbd50d868acbfae9d1a972f6bbb2587f06c9ec73308d11af6acb3a401de9832  policycoreutils-3.10.tar.gz
+
+# Hash for license file
+sha256  204d8eff92f95aac4df6c8122bc1505f468f3a901e5a4cc08940e0ede1938994  LICENSE

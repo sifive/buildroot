@@ -1,42 +1,41 @@
+Nanopi NEO
+
 Intro
 =====
 
-The instructions herein are valid for the FriendlyARM NanoPi NEO,
-both the 256MiB and 512MiB versions. They should also work for the
-NanoPi NEO Air, but this is untested so far.
+This default configuration will allow you to start experimenting with the
+buildroot environment for the NanoPi NEO. With the current configuration
+it will bring-up the board, and allow access through the serial console.
 
-The FriendlyARM Nanopi NEO is a 4x4cm² board with an Allwiner H3 SoC:
-  - quad-core Cortex-A7 @1.2GHz
-  - 256 or 512MiB of DDR
-  - uSDCard as only storage option
-  - 3x USB 2.0 host (one socket, two on expansion pin-holes)
-  - 1x USB 2.0 OTG (also used as power source)
-  - 10/100 ethernet MAC
-  - GPIOs, SPI, I2c...
-
-Support for the Nanopi NEO in U-Boot and Linux is very recent, so only
-core, basic features are available.
-
-Unfortunately, support for the ethernet MAC and the USB OTG are not
-yet upstream, but are being actively worked on.
-
+FriendlyARM Nanopi NEO link:
+https://wiki.friendlyelec.com/wiki/index.php/NanoPi_NEO
 
 How to build
 ============
 
-    $ make nanopi_neo_defconfig
+    $ make friendlyarm_nanopi_neo_defconfig
     $ make
 
 Note: you will need access to the internet to download the required
 sources.
 
-You will then obtain an image ready to be written to your micro SDcard:
+How to write the SD card
+========================
 
-    $ dd if=output/images/sdcard.img of=/dev/sdX bs=1M
+Once the build process is finished you will have an image called "sdcard.img"
+in the output/images/ directory.
 
-Notes:
-  - replace 'sdX' with the actual device with your micro SDcard,
-  - you may need to be root to do that (use 'sudo').
+Copy the bootable "sdcard.img" onto an SD card with "dd":
 
-Insert the micro SDcard in your NanoPi NEO and power it up. The console
-is on the serial line, 115200 8N1.
+  $ sudo dd if=output/images/sdcard.img of=/dev/sdX
+  $ sudo sync
+
+Insert the micro SD card in your Nanopi NEO and power it up. The console
+is on the debug TTL UART, 115200 8N1.
+
+Ethernet
+==========
+
+  # udhcpc -i eth0
+
+Enjoy!

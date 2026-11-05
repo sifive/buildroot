@@ -1,3 +1,5 @@
-# md5 from https://pypi.python.org/pypi/cssutils/json, sha256 locally computed
-md5	7fcdf2c3e9f053136af1990146eb361d  cssutils-1.0.1.tar.gz
-sha256	d8a18b2848ea1011750231f1dd64fe9053dbec1be0b37563c582561e7a529063  cssutils-1.0.1.tar.gz
+# md5, sha256 from https://pypi.org/pypi/cssutils/json
+md5  8a90c28a2f037c525a25e5a2541fd9a5  cssutils-2.15.0.tar.gz
+sha256  e9739237f3915037dacba787c4b58f280e3ec5d9864953e185bf23d40ff7d021  cssutils-2.15.0.tar.gz
+# Locally computed sha256 checksums
+sha256  b8f0d64361b0d6480ebd172c2c53c51e80745e41d69d612e4ffa35e85f8d822c  LICENSE

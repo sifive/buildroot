@@ -4,27 +4,30 @@
 #
 ################################################################################
 
-ACPICA_VERSION = 20170531
-ACPICA_SOURCE = acpica-unix2-$(ACPICA_VERSION).tar.gz
-ACPICA_SITE = https://acpica.org/sites/acpica/files
+ACPICA_VERSION = 20260930
+ACPICA_SOURCE = acpica-unix-$(ACPICA_VERSION).tar.gz
+ACPICA_SITE = https://github.com/open-acpica/acpica/releases/download/$(ACPICA_VERSION)
 ACPICA_LICENSE = BSD-3-Clause or GPL-2.0
-ACPICA_LICENSE_FILES = source/include/acpi.h
+ACPICA_LICENSE_FILES = LICENSE.BSD-3-Clause LICENSE.GPL-2.0-only
 ACPICA_DEPENDENCIES = host-bison host-flex
+HOST_ACPICA_DEPENDENCIES = host-bison host-flex
 
 define ACPICA_BUILD_CMDS
 	$(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D) \
-		HARDWARE_NAME=$(BR2_ARCH) HOST=_LINUX CC="$(TARGET_CC)" \
+		ACPI_HOST=_LINUX CC="$(TARGET_CC)" \
+		NOWERROR=TRUE \
 		all
 endef
 
 define HOST_ACPICA_BUILD_CMDS
 	$(HOST_CONFIGURE_OPTS) $(MAKE) -C $(@D) \
+		NOWERROR=TRUE \
 		all
 endef
 
 define ACPICA_INSTALL_TARGET_CMDS
 	$(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D) \
-		HARDWARE_NAME=$(BR2_ARCH) DESTDIR="$(TARGET_DIR)" \
+		DESTDIR="$(TARGET_DIR)" \
 		INSTALLFLAGS=-m755 install
 endef
 

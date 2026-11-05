@@ -1,2 +1,10 @@
 # Locally calculated after checking pgp signature
-sha256	e2f1d6871f74fba23652e51d10873e54f71adab0525833c19bad9e99b1b2f9cc	dbus-python-1.2.4.tar.gz
+sha256  ac94ce330879108e5d37105164cc14b595bdf9326d2ce4a5acad6c1ab2bf6476  dbus_python-1.5.0.tar.gz
+
+# Locally calculated
+sha256  c5324f0629698cbe01dde8e3b802c3331601ebf98c3c65918520ba5eca66c930  COPYING
+sha256  b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0  LICENSES/MIT.txt
+sha256  118fdd408a78866c5b776864650f4a6006616b5bd0793a63924c91febba0b2b8  subprojects/dbus-gmain/COPYING
+sha256  93bb4f7417aa775bab9026cc3d0af28aeb64451fc5a8ec651876785edd8eaf9b  subprojects/dbus-gmain/LICENSES/AFL-2.1.txt
+sha256  aaf135472f81c5b4a0dca9367e5bb5e9750032b5bebe5442b36e4c0a47430df3  subprojects/dbus-gmain/LICENSES/GPL-2.0-or-later.txt
+sha256  b85dcd3e453d05982552c52b5fc9e0bdd6d23c6f8e844b984a88af32570b0cc0  subprojects/dbus-gmain/LICENSES/MIT.txt

@@ -1,2 +1,4 @@
-# From https://www.apache.org/dist/thrift/0.9.2/thrift-0.9.2.tar.gz.md5
-md5	89f63cc4d0100912f4a1f8a9dee63678	thrift-0.9.2.tar.gz
+# From https://downloads.apache.org/thrift/0.25.0/thrift-0.25.0.tar.gz.sha256
+sha256  66da4707214c54c94bac082103dc67adaf9e08925662700f269170a7b534b214  thrift-0.25.0.tar.gz
+# License files, locally calculated
+sha256  c866aafb79e8d5885eabb9d44a0105c8fcca35d26c5088025b131a908458a8af  LICENSE

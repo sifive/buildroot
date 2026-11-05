@@ -8,10 +8,14 @@ LINUX_TOOLS += perf
 
 PERF_DEPENDENCIES = host-flex host-bison
 
-ifeq ($(KERNEL_ARCH),x86_64)
+ifeq ($(BR2_PACKAGE_LINUX_TOOLS_PERF_NEEDS_HOST_PYTHON3),y)
+PERF_DEPENDENCIES += host-python3
+endif
+
+ifeq ($(NORMALIZED_ARCH),x86_64)
 PERF_ARCH=x86
 else
-PERF_ARCH=$(KERNEL_ARCH)
+PERF_ARCH=$(NORMALIZED_ARCH)
 endif
 
 PERF_MAKE_FLAGS = \
@@ -19,26 +23,35 @@ PERF_MAKE_FLAGS = \
 	JOBS=$(PARALLEL_JOBS) \
 	ARCH=$(PERF_ARCH) \
 	DESTDIR=$(TARGET_DIR) \
+	PKG_CONFIG_LIBDIR="$(STAGING_DIR)/usr/lib/pkgconfig" \
 	prefix=/usr \
-	WERROR=0 \
-	NO_LIBAUDIT=1 \
-	NO_NEWT=1 \
 	NO_GTK2=1 \
 	NO_LIBPERL=1 \
 	NO_LIBPYTHON=1 \
-	NO_LIBBIONIC=1
+	NO_LIBBIONIC=1 \
+	NO_RUST=1 \
+	NO_SHELLCHECK=1 \
+	BUILD_BPF_SKEL=0
 
-# We need to pass an argument to ld for setting the endianness when
-# building it for MIPS architecture, otherwise the default one will
-# always be used (which is big endian) and the compilation for little
-# endian will always fail showing an error like this one:
-#  LD    foo.o
-# mips-linux-gnu-ld: foo.o: compiled for a little endian system and
-# target is big endian
-ifeq ($(BR2_mips)$(BR2_mips64),y)
-PERF_MAKE_FLAGS += LD="$(TARGET_LD) -EB"
-else ifeq ($(BR2_mipsel)$(BR2_mips64el),y)
-PERF_MAKE_FLAGS += LD="$(TARGET_LD) -EL"
+# We need to pass an argument to ld for setting the emulation when
+# building for MIPS architecture, otherwise the default one will always
+# be used and the compilation for most variants will fail.
+ifeq ($(BR2_mips),y)
+PERF_MAKE_FLAGS += LD="$(TARGET_LD) -m elf32btsmip"
+else ifeq ($(BR2_mipsel),y)
+PERF_MAKE_FLAGS += LD="$(TARGET_LD) -m elf32ltsmip"
+else ifeq ($(BR2_mips64),y)
+ifeq ($(BR2_MIPS_NABI32),y)
+PERF_MAKE_FLAGS += LD="$(TARGET_LD) -m elf32btsmipn32"
+else
+PERF_MAKE_FLAGS += LD="$(TARGET_LD) -m elf64btsmip"
+endif
+else ifeq ($(BR2_mips64el),y)
+ifeq ($(BR2_MIPS_NABI32),y)
+PERF_MAKE_FLAGS += LD="$(TARGET_LD) -m elf32ltsmipn32"
+else
+PERF_MAKE_FLAGS += LD="$(TARGET_LD) -m elf64ltsmip"
+endif
 endif
 
 # The call to backtrace() function fails for ARC, because for some
@@ -51,10 +64,20 @@ ifeq ($(BR2_arc),y)
 PERF_MAKE_FLAGS += NO_BACKTRACE=1
 endif
 
-ifeq ($(BR2_PACKAGE_SLANG),y)
+ifeq ($(BR2_PACKAGE_LINUX_TOOLS_PERF_TUI),y)
 PERF_DEPENDENCIES += slang
 else
-PERF_MAKE_FLAGS += NO_SLANG=1
+PERF_MAKE_FLAGS += NO_NEWT=1 NO_SLANG=1
+endif
+
+ifeq ($(BR2_PACKAGE_AUDIT),y)
+PERF_DEPENDENCIES += audit
+else
+PERF_MAKE_FLAGS += NO_LIBAUDIT=1
+endif
+
+ifeq ($(BR2_PACKAGE_ZSTD),y)
+PERF_DEPENDENCIES += zstd
 endif
 
 ifeq ($(BR2_PACKAGE_LIBUNWIND),y)
@@ -75,6 +98,18 @@ else
 PERF_MAKE_FLAGS += NO_LIBELF=1 NO_DWARF=1
 endif
 
+ifeq ($(BR2_PACKAGE_BINUTILS),y)
+PERF_DEPENDENCIES += binutils
+else
+PERF_MAKE_FLAGS += NO_DEMANGLE=1
+endif
+
+ifeq ($(BR2_PACKAGE_OPENSSL),y)
+PERF_DEPENDENCIES += openssl
+else
+PERF_MAKE_FLAGS += NO_LIBCRYPTO=1
+endif
+
 ifeq ($(BR2_PACKAGE_ZLIB),y)
 PERF_DEPENDENCIES += zlib
 else
@@ -88,18 +123,36 @@ else
 PERF_MAKE_FLAGS += NO_LZMA=1
 endif
 
+ifeq ($(BR2_PACKAGE_OPENCSD),y)
+PERF_DEPENDENCIES += opencsd
+PERF_MAKE_FLAGS += CORESIGHT=1
+# There is no "else CORESIGHT=0" case, because "perf" Makefile uses
+# bare "ifdef CORESIGHT" constructs.
+endif
+
+ifeq ($(BR2_PACKAGE_LIBTRACEEVENT),y)
+PERF_DEPENDENCIES += libtraceevent
+else
+PERF_MAKE_FLAGS += NO_LIBTRACEEVENT=1
+endif
+
 # We really do not want to build the perf documentation, because it
 # has stringent requirement on the documentation generation tools,
 # like xmlto and asciidoc), which may be lagging behind on some
 # distributions.
 # We name it 'GNUmakefile' so that GNU make will use it instead of
 # the existing 'Makefile'.
+#
+# This must be a PRE_CONFIGURE hook, not a POST_PATCH hook. Only the
+# configure step is ordered after "linux" (via LINUX_TOOLS_DEPENDENCIES).
+# For a POST_PATCH hook, tools/perf/Documentation/Makefile is not
+# guaranteed to exist yet.
 define PERF_DISABLE_DOCUMENTATION
 	if [ -f $(LINUX_DIR)/tools/perf/Documentation/Makefile ]; then \
 		printf "%%:\n\t@:\n" >$(LINUX_DIR)/tools/perf/Documentation/GNUmakefile; \
 	fi
 endef
-LINUX_POST_PATCH_HOOKS += PERF_DISABLE_DOCUMENTATION
+LINUX_TOOLS_PRE_CONFIGURE_HOOKS += PERF_DISABLE_DOCUMENTATION
 
 # O must be redefined here to overwrite the one used by Buildroot for
 # out of tree build. We build perf in $(LINUX_DIR)/tools/perf/ and not just
@@ -120,15 +173,35 @@ define PERF_BUILD_CMDS
 			fi \
 		fi \
 	fi
+	$(Q)if test "$(BR2_PACKAGE_LINUX_TOOLS_PERF_TUI)" = "y" ; then \
+		if ! grep -q NO_SLANG $(LINUX_DIR)/tools/perf/Makefile* ; then \
+			echo "The perf tool in your kernel cannot be build with the TUI." ; \
+			echo "Either upgrade your kernel to >= 3.10, or disable the TUI." ; \
+			exit 1 ; \
+		fi \
+	fi
 	$(TARGET_MAKE_ENV) $(MAKE1) $(PERF_MAKE_FLAGS) \
 		-C $(LINUX_DIR)/tools/perf O=$(LINUX_DIR)/tools/perf/
 endef
 
 # After installation, we remove the Perl and Python scripts from the
-# target.
+# target unless BR2_PACKAGE_LINUX_TOOLS_PERF_SCRIPTS is enabled
+ifeq ($(BR2_PACKAGE_LINUX_TOOLS_PERF_SCRIPTS),)
+define PERF_INSTALL_REMOVE_SCRIPTS
+	$(RM) -r $(TARGET_DIR)/usr/libexec/perf-core/scripts/
+	$(RM) -r $(TARGET_DIR)/usr/libexec/perf-core/tests/
+endef
+
+LINUX_TOOLS_BIN_ARCH_EXCLUDE += \
+	/usr/libexec/perf-core/tests/
+endif
+
 define PERF_INSTALL_TARGET_CMDS
 	$(TARGET_MAKE_ENV) $(MAKE1) $(PERF_MAKE_FLAGS) \
 		-C $(LINUX_DIR)/tools/perf O=$(LINUX_DIR)/tools/perf/ install
-	$(RM) -rf $(TARGET_DIR)/usr/libexec/perf-core/scripts/
-	$(RM) -rf $(TARGET_DIR)/usr/libexec/perf-core/tests/
+	$(PERF_INSTALL_REMOVE_SCRIPTS)
+endef
+
+define PERF_LINUX_CONFIG_FIXUPS
+	$(call KCONFIG_ENABLE_OPT,CONFIG_PERF_EVENTS)
 endef

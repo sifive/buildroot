@@ -1,4 +1,3 @@
-# From https://github.com/martinh/libconfuse/releases/download/v3.2/confuse-3.2.tar.xz.md5
-md5  84259ac3bd495645ab2fe61654917232  confuse-3.2.tar.xz
 # Locally computed
-sha256  a46abb8696026d314197b6a70ae1a1c296342a9a68aa69b1935709c1477a4e48  confuse-3.1.tar.xz
+sha256  36bfa3928f9c323914c7c8317e8722cb22f41db69d7c9d4c24b4689fa955445d  confuse-3.4.tar.xz
+sha256  dc3ff4b62f851dd2e94a151061ffeb7d28ddfc880a442068dc5283dbaa927306  LICENSE

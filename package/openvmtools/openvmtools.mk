@@ -4,24 +4,53 @@
 #
 ################################################################################
 
-OPENVMTOOLS_VERSION = 5a9033ddfa95786d867e4d02bbb9a29bac8fb64f
-OPENVMTOOLS_SITE = $(call github,vmware,open-vm-tools,$(OPENVMTOOLS_VERSION))
-OPENVMTOOLS_SUBDIR = open-vm-tools
+OPENVMTOOLS_VERSION_MAJOR = 13.1.0
+OPENVMTOOLS_VERSION = $(OPENVMTOOLS_VERSION_MAJOR)-25218885
+OPENVMTOOLS_SITE = https://github.com/vmware/open-vm-tools/releases/download/stable-$(OPENVMTOOLS_VERSION_MAJOR)
+OPENVMTOOLS_SOURCE = open-vm-tools-$(OPENVMTOOLS_VERSION).tar.gz
 OPENVMTOOLS_LICENSE = LGPL-2.1
-OPENVMTOOLS_LICENSE_FILES = $(OPENVMTOOLS_SUBDIR)/COPYING
+OPENVMTOOLS_LICENSE_FILES = COPYING
+OPENVMTOOLS_CPE_ID_VENDOR = vmware
+OPENVMTOOLS_CPE_ID_PRODUCT = tools
 
-# Autoreconf needed or config/missing will run configure again at buildtime
+# This CVE affects a Wordpress plugin. VMware information,
+# previously connected to this CVE ID because of a typo, is at CVE-2022-31693
+OPENVMTOOLS_IGNORE_CVES += CVE-2021-31693
+
+# configure.ac is patched
 OPENVMTOOLS_AUTORECONF = YES
 OPENVMTOOLS_CONF_OPTS = --with-dnet \
 	--without-icu --without-x --without-gtk2 \
 	--without-gtkmm --without-kernel-modules \
-	--disable-deploypkg --without-xerces
-OPENVMTOOLS_CONF_ENV += CUSTOM_DNET_CPPFLAGS=" "
-OPENVMTOOLS_DEPENDENCIES = libglib2 libdnet
+	--disable-deploypkg --without-xerces \
+	--disable-vgauth --disable-containerinfo
+OPENVMTOOLS_CONF_ENV += \
+	CUSTOM_DNET_CPPFLAGS=" " \
+	LIBS=$(TARGET_NLS_LIBS)
+OPENVMTOOLS_DEPENDENCIES = \
+	host-nfs-utils \
+	libglib2 \
+	libdnet \
+	$(TARGET_NLS_DEPENDENCIES)
+
+ifeq ($(BR2_PACKAGE_LIBTIRPC),y)
+OPENVMTOOLS_CONF_OPTS += --with-tirpc
+OPENVMTOOLS_DEPENDENCIES += libtirpc
+else
+OPENVMTOOLS_CONF_OPTS += --without-tirpc
+endif
+
+ifeq ($(BR2_PACKAGE_LIBXCRYPT),y)
+OPENVMTOOLS_DEPENDENCIES += libxcrypt
+endif
 
 # When libfuse is available, openvmtools can build vmblock-fuse, so
 # make sure that libfuse gets built first
-ifeq ($(BR2_PACKAGE_LIBFUSE),y)
+ifeq ($(BR2_PACKAGE_LIBFUSE3),y)
+OPENVMTOOLS_CONF_OPTS += --with-fuse=fuse3
+OPENVMTOOLS_DEPENDENCIES += libfuse3
+else ifeq ($(BR2_PACKAGE_LIBFUSE),y)
+OPENVMTOOLS_CONF_OPTS += --with-fuse=fuse
 OPENVMTOOLS_DEPENDENCIES += libfuse
 endif
 
@@ -32,18 +61,18 @@ else
 OPENVMTOOLS_CONF_OPTS += --without-ssl
 endif
 
-ifeq ($(BR2_PACKAGE_OPENVMTOOLS_PROCPS),y)
-OPENVMTOOLS_CONF_OPTS += --with-procps
-OPENVMTOOLS_DEPENDENCIES += procps-ng
-else
-OPENVMTOOLS_CONF_OPTS += --without-procps
-endif
-
 ifeq ($(BR2_PACKAGE_OPENVMTOOLS_PAM),y)
 OPENVMTOOLS_CONF_OPTS += --with-pam
 OPENVMTOOLS_DEPENDENCIES += linux-pam
 else
 OPENVMTOOLS_CONF_OPTS += --without-pam
+endif
+
+ifeq ($(BR2_PACKAGE_OPENVMTOOLS_RESOLUTIONKMS),y)
+OPENVMTOOLS_CONF_OPTS += --enable-resolutionkms
+OPENVMTOOLS_DEPENDENCIES += libdrm udev
+else
+OPENVMTOOLS_CONF_OPTS += --disable-resolutionkms
 endif
 
 # symlink needed by lib/system/systemLinux.c (or will cry in /var/log/messages)
@@ -67,9 +96,6 @@ endef
 define OPENVMTOOLS_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -D -m 644 package/openvmtools/vmtoolsd.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/vmtoolsd.service
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -fs ../../../../usr/lib/systemd/system/vmtoolsd.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/vmtoolsd.service
 endef
 
 $(eval $(autotools-package))

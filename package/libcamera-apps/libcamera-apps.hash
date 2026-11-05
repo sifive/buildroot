@@ -1,0 +1,4 @@
+# From https://github.com/raspberrypi/rpicam-apps/releases/tag/v1.14.0
+sha256  f0c2315515faa47be2eec4492f5ffe9409f1993b66f3b9bc79c2fc653155611d  rpicam-apps_1.14.0.orig.tar.xz
+# Locally computed
+sha256  36dfed86bdef661a0a14ec1a1cc84c771d5a06b6f9b92e9ebb610ba711bd528a  license.txt

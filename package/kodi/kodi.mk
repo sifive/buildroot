@@ -6,83 +6,129 @@
 
 # When updating the version, please also update kodi-jsonschemabuilder
 # and kodi-texturepacker
-KODI_VERSION = 17.4-Krypton
+KODI_VERSION_MAJOR = 22.0rc1
+KODI_VERSION_NAME = Piers
+KODI_VERSION = $(KODI_VERSION_MAJOR)-$(KODI_VERSION_NAME)
 KODI_SITE = $(call github,xbmc,xbmc,$(KODI_VERSION))
 KODI_LICENSE = GPL-2.0
-KODI_LICENSE_FILES = LICENSE.GPL
+KODI_LICENSE_FILES = LICENSE.md
+KODI_CPE_ID_VENDOR = kodi
+KODI_CPE_ID_VERSION = $(KODI_VERSION_MAJOR)
 # needed for binary addons
 KODI_INSTALL_STAGING = YES
+# kodi recommends building out-of-source
+KODI_SUPPORTS_IN_SOURCE_BUILD = NO
 KODI_DEPENDENCIES = \
-	bzip2 \
-	expat \
+	exiv2 \
 	ffmpeg \
+	flatbuffers \
+	fmt \
 	fontconfig \
 	freetype \
+	fstrcmp \
+	giflib \
+	host-flatbuffers \
 	host-gawk \
+	host-gettext \
 	host-gperf \
 	host-kodi-jsonschemabuilder \
 	host-kodi-texturepacker \
 	host-nasm \
 	host-swig \
 	host-xmlstarlet \
-	host-zip \
+	jpeg \
+	json-for-modern-cpp \
 	libass \
-	libcdio \
 	libcrossguid \
 	libcurl \
+	libdrm \
+	libegl \
 	libfribidi \
 	libplist \
-	libsamplerate \
+	libpng \
 	lzo \
-	ncurses \
 	openssl \
-	pcre \
-	python \
-	readline \
+	pcre2 \
+	python3 \
+	spdlog \
 	sqlite \
 	taglib \
 	tinyxml \
-	yajl \
+	tinyxml2 \
 	zlib
 
-KODI_SUBDIR = project/cmake
-
-KODI_LIBDVDCSS_VERSION = 2f12236
-KODI_LIBDVDNAV_VERSION = 981488f
-KODI_LIBDVDREAD_VERSION = 17d99db
-
-KODI_EXTRA_DOWNLOADS = \
-	https://github.com/xbmc/libdvdcss/archive/$(KODI_LIBDVDCSS_VERSION).tar.gz \
-	https://github.com/xbmc/libdvdnav/archive/$(KODI_LIBDVDNAV_VERSION).tar.gz \
-	https://github.com/xbmc/libdvdread/archive/$(KODI_LIBDVDREAD_VERSION).tar.gz
+# taken from tools/depends/target/*/*-VERSION
+KODI_LIBDVDCSS_VERSION = 1.5.0
+KODI_LIBDVDNAV_VERSION = 7.0.0
+KODI_LIBDVDREAD_VERSION = 7.0.1
+KODI_EXTRA_DOWNLOADS += \
+	https://mirrors.kodi.tv/build-deps/sources/libdvdcss-$(KODI_LIBDVDCSS_VERSION).tar.bz2 \
+	https://mirrors.kodi.tv/build-deps/sources/libdvdread-$(KODI_LIBDVDREAD_VERSION).tar.bz2 \
+	https://mirrors.kodi.tv/build-deps/sources/libdvdnav-$(KODI_LIBDVDNAV_VERSION).tar.bz2
 
 KODI_CONF_OPTS += \
 	-DCMAKE_C_FLAGS="$(TARGET_CFLAGS) $(KODI_C_FLAGS)" \
-	-DCMAKE_CXX_FLAGS="$(TARGET_CXXFLAGS) $(KODI_CXX_FLAGS)" \
+	-DCMAKE_EXE_LINKER_FLAGS="$(KODI_EXTRA_LIBS)" \
+	-DENABLE_APP_AUTONAME=OFF \
 	-DENABLE_CCACHE=OFF \
 	-DENABLE_DVDCSS=ON \
 	-DENABLE_INTERNAL_CROSSGUID=OFF \
-	-DENABLE_INTERNAL_FFMPEG=OFF \
+	-DFFMPEG_PATH=$(STAGING_DIR)/usr \
+	-DENABLE_INTERNAL_FLATBUFFERS=OFF \
+	-DFLATBUFFERS_FLATC_EXECUTABLE=$(HOST_DIR)/bin/flatc \
+	-DENABLE_INTERNAL_SPDLOG=OFF \
 	-DKODI_DEPENDSBUILD=OFF \
-	-DENABLE_OPENSSL=ON \
+	-DENABLE_GOLD=OFF \
+	-DCLANG_FORMAT_EXECUTABLE=OFF \
+	-DHOST_CAN_EXECUTE_TARGET=FALSE \
 	-DNATIVEPREFIX=$(HOST_DIR) \
-	-DDEPENDS_PATH=$(@D) \
-	-DWITH_FFMPEG=$(STAGING_DIR)/usr \
-	-DWITH_TEXTUREPACKER=$(HOST_DIR)/bin/TexturePacker \
-	-DLIBDVDCSS_URL=$(DL_DIR)/$(KODI_LIBDVDCSS_VERSION).tar.gz \
-	-DLIBDVDNAV_URL=$(DL_DIR)/$(KODI_LIBDVDNAV_VERSION).tar.gz \
-	-DLIBDVDREAD_URL=$(DL_DIR)/$(KODI_LIBDVDREAD_VERSION).tar.gz
+	-DDEPENDS_PATH=$(STAGING_DIR)/usr \
+	-DENABLE_TESTING=OFF \
+	-DPYTHON_PATH=$(STAGING_DIR)/usr/lib/python$(PYTHON3_VERSION_MAJOR) \
+	-DPYTHON_VER=$(PYTHON3_VERSION_MAJOR) \
+	-DVERBOSE_FIND=ON \
+	-DWITH_JSONSCHEMABUILDER=$(HOST_DIR)/bin/ \
+	-DWITH_TEXTUREPACKER=$(HOST_DIR)/bin/ \
+	-DLIBDVDCSS_URL=$(KODI_DL_DIR)/libdvdcss-$(KODI_LIBDVDCSS_VERSION).tar.bz2 \
+	-DLIBDVDNAV_URL=$(KODI_DL_DIR)/libdvdnav-$(KODI_LIBDVDNAV_VERSION).tar.bz2 \
+	-DLIBDVDREAD_URL=$(KODI_DL_DIR)/libdvdread-$(KODI_LIBDVDREAD_VERSION).tar.bz2
 
-ifeq ($(BR2_PACKAGE_RPI_USERLAND),y)
-KODI_CONF_OPTS += -DCORE_SYSTEM_NAME=rbpi
-KODI_DEPENDENCIES += rpi-userland
-# These CPU-specific options are only used on rbpi:
-# https://github.com/xbmc/xbmc/blob/Krypton/project/cmake/scripts/rbpi/ArchSetup.cmake#L13
-ifeq ($(BR2_arm1176jzf_s)$(BR2_cortex_a7)$(BR2_cortex_a53),y)
-KODI_CONF_OPTS += -DWITH_CPU=$(BR2_GCC_TARGET_CPU)
+ifeq ($(BR2_PACKAGE_KODI_RENDER_SYSTEM_GL),y)
+KODI_CONF_OPTS += -DAPP_RENDER_SYSTEM=gl
+KODI_DEPENDENCIES += libgl libglu
+else ifeq ($(BR2_PACKAGE_KODI_RENDER_SYSTEM_GLES),y)
+KODI_CONF_OPTS += -DAPP_RENDER_SYSTEM=gles
+KODI_DEPENDENCIES += libgles
 endif
-else
-ifeq ($(BR2_arceb)$(BR2_arcle),y)
+
+ifeq ($(BR2_PACKAGE_KODI_PLATFORM_SUPPORTS_GBM),y)
+KODI_CORE_PLATFORM_NAME += gbm
+KODI_DEPENDENCIES += libdisplay-info libgbm libinput libxkbcommon
+endif
+
+ifeq ($(BR2_PACKAGE_KODI_PLATFORM_SUPPORTS_WAYLAND),y)
+KODI_CONF_OPTS += \
+	-DWAYLANDPP_PROTOCOLS_DIR=$(STAGING_DIR)/usr/share/waylandpp/protocols
+KODI_CORE_PLATFORM_NAME += wayland
+KODI_DEPENDENCIES += libxkbcommon waylandpp
+endif
+
+ifeq ($(BR2_PACKAGE_KODI_PLATFORM_SUPPORTS_X11),y)
+KODI_CORE_PLATFORM_NAME += x11
+KODI_DEPENDENCIES += \
+	xlib_libX11 \
+	xlib_libXext \
+	xlib_libXrandr
+endif
+
+KODI_CONF_OPTS += -DCORE_PLATFORM_NAME="$(KODI_CORE_PLATFORM_NAME)"
+
+ifeq ($(BR2_ENABLE_LOCALE),)
+KODI_DEPENDENCIES += libiconv
+KODI_EXTRA_LIBS += -liconv
+endif
+
+ifeq ($(BR2_arcle),y)
 KODI_CONF_OPTS += -DWITH_ARCH=arc -DWITH_CPU=arc
 else ifeq ($(BR2_armeb),y)
 KODI_CONF_OPTS += -DWITH_ARCH=arm -DWITH_CPU=arm
@@ -94,13 +140,20 @@ else ifeq ($(BR2_powerpc)$(BR2_powerpc64le),y)
 KODI_CONF_OPTS += \
 	-DWITH_ARCH=powerpc$(if $(BR2_ARCH_IS_64),64) \
 	-DWITH_CPU=powerpc$(if $(BR2_ARCH_IS_64),64)
-else ifeq ($(BR2_powerpc64)$(BR2_sparc64)$(BR2_sh4)$(BR2_xtensa),y)
+else ifeq ($(BR2_or1k)$(BR2_powerpc64)$(BR2_riscv)$(BR2_sparc64)$(BR2_sh4)$(BR2_xtensa),y)
 KODI_CONF_OPTS += -DWITH_ARCH=$(BR2_ARCH) -DWITH_CPU=$(BR2_ARCH)
 else
 # Kodi auto-detects ARCH, tested: arm, aarch64, i386, x86_64
 # see project/cmake/scripts/linux/ArchSetup.cmake
 KODI_CONF_OPTS += -DWITH_CPU=$(BR2_ARCH)
 endif
+
+ifeq ($(BR2_ARM_CPU_HAS_NEON),y)
+KODI_CONF_OPTS += -DENABLE_NEON=ON
+else ifeq ($(BR2_aarch64),y)
+KODI_CONF_OPTS += -DENABLE_NEON=ON
+else
+KODI_CONF_OPTS += -DENABLE_NEON=OFF
 endif
 
 ifeq ($(BR2_X86_CPU_HAS_SSE),y)
@@ -151,58 +204,27 @@ else
 KODI_CONF_OPTS += -D_AVX2_OK=OFF -D_AVX2_TRUE=OFF
 endif
 
-# mips: uses __atomic_load_8
-ifeq ($(BR2_TOOLCHAIN_HAS_LIBATOMIC),y)
-KODI_CXX_FLAGS += -latomic
+ifeq ($(BR2_TOOLCHAIN_GCC_AT_LEAST_5),)
+KODI_C_FLAGS += -std=gnu99
 endif
 
 ifeq ($(BR2_PACKAGE_KODI_MYSQL),y)
 KODI_CONF_OPTS += -DENABLE_MYSQLCLIENT=ON
-KODI_DEPENDENCIES += mysql
+KODI_DEPENDENCIES += mariadb
 else
 KODI_CONF_OPTS += -DENABLE_MYSQLCLIENT=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_KODI_NONFREE),y)
-KODI_CONF_OPTS += -DENABLE_NONFREE=ON
-KODI_LICENSE := $(KODI_LICENSE), unrar
-KODI_LICENSE_FILES += lib/UnrarXLib/license.txt
-else
-KODI_CONF_OPTS += -DENABLE_NONFREE=OFF
-endif
-
-ifeq ($(BR2_PACKAGE_RPI_USERLAND),y)
-KODI_CONF_OPTS += -DCORE_SYSTEM_NAME=rbpi
-KODI_DEPENDENCIES += rpi-userland
-else
-# Kodi considers "rpbi" and "linux" as two separate platforms. The
-# below options, defined in
-# project/cmake/scripts/linux/ArchSetup.cmake are only valid for the
-# "linux" platforms. The "rpbi" platform has a different set of
-# options, defined in project/cmake/scripts/rbpi/
-KODI_CONF_OPTS += -DENABLE_LDGOLD=OFF
-ifeq ($(BR2_PACKAGE_LIBAMCODEC),y)
-KODI_CONF_OPTS += -DENABLE_AML=ON
-KODI_DEPENDENCIES += libamcodec
-else
-KODI_CONF_OPTS += -DENABLE_AML=OFF
-endif
-ifeq ($(BR2_PACKAGE_IMX_VPUWRAP),y)
-KODI_CONF_OPTS += -DENABLE_IMX=ON
-KODI_DEPENDENCIES += imx-vpuwrap
-else
-KODI_CONF_OPTS += -DENABLE_IMX=OFF
-endif
-endif
-
-ifeq ($(BR2_PACKAGE_HAS_UDEV),y)
+ifeq ($(BR2_PACKAGE_HAS_LIBUDEV),y)
 KODI_CONF_OPTS += -DENABLE_UDEV=ON
-KODI_DEPENDENCIES += udev
+KODI_DEPENDENCIES += libudev
 else
 KODI_CONF_OPTS += -DENABLE_UDEV=OFF
 ifeq ($(BR2_PACKAGE_KODI_LIBUSB),y)
 KODI_CONF_OPTS += -DENABLE_LIBUSB=ON
 KODI_DEPENDENCIES += libusb-compat
+else
+KODI_CONF_OPTS += -DENABLE_LIBUSB=OFF
 endif
 endif
 
@@ -247,24 +269,6 @@ else
 KODI_CONF_OPTS += -DENABLE_ALSA=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_KODI_GL_EGL),y)
-KODI_DEPENDENCIES += libegl libglu libgl xlib_libX11 xlib_libXext \
-	xlib_libXrandr libdrm
-KODI_CONF_OPTS += -DENABLE_OPENGL=ON -DENABLE_X11=ON -DENABLE_OPENGLES=OFF
-else
-KODI_CONF_OPTS += -DENABLE_OPENGL=OFF -DENABLE_X11=OFF
-endif
-
-ifeq ($(BR2_PACKAGE_KODI_EGL_GLES),y)
-KODI_DEPENDENCIES += libegl libgles
-KODI_CONF_OPTS += \
-	-DENABLE_OPENGLES=ON
-KODI_C_FLAGS += `$(PKG_CONFIG_HOST_BINARY) --cflags --libs egl`
-KODI_CXX_FLAGS += `$(PKG_CONFIG_HOST_BINARY) --cflags --libs egl`
-else
-KODI_CONF_OPTS += -DENABLE_OPENGLES=OFF
-endif
-
 ifeq ($(BR2_PACKAGE_KODI_LIBMICROHTTPD),y)
 KODI_CONF_OPTS += -DENABLE_MICROHTTPD=ON
 KODI_DEPENDENCIES += libmicrohttpd
@@ -300,13 +304,6 @@ else
 KODI_CONF_OPTS += -DENABLE_AIRTUNES=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_KODI_LIBSSH),y)
-KODI_DEPENDENCIES += libssh
-KODI_CONF_OPTS += -DENABLE_SSH=ON
-else
-KODI_CONF_OPTS += -DENABLE_SSH=OFF
-endif
-
 ifeq ($(BR2_PACKAGE_KODI_AVAHI),y)
 KODI_DEPENDENCIES += avahi
 KODI_CONF_OPTS += -DENABLE_AVAHI=ON
@@ -328,19 +325,12 @@ else
 KODI_CONF_OPTS += -DENABLE_LCMS2=OFF
 endif
 
-ifeq ($(BR2_PACKAGE_KODI_LIRC),y)
-KODI_CONF_OPTS += -DENABLE_LIRC=ON
-else
-KODI_CONF_OPTS += -DENABLE_LIRC=OFF
+ifeq ($(BR2_PACKAGE_LIRC_TOOLS),y)
+KODI_DEPENDENCIES += lirc-tools
 endif
 
-ifeq ($(BR2_PACKAGE_KODI_LIBTHEORA),y)
-KODI_DEPENDENCIES += libtheora
-endif
-
-# kodi needs libva & libva-glx
-ifeq ($(BR2_PACKAGE_KODI_LIBVA)$(BR2_PACKAGE_MESA3D_DRI_DRIVER),yy)
-KODI_DEPENDENCIES += mesa3d libva
+ifeq ($(BR2_PACKAGE_LIBVA),y)
+KODI_DEPENDENCIES += libva
 KODI_CONF_OPTS += -DENABLE_VAAPI=ON
 else
 KODI_CONF_OPTS += -DENABLE_VAAPI=OFF
@@ -360,9 +350,17 @@ KODI_CONF_OPTS += -DENABLE_UPNP=OFF
 endif
 
 ifeq ($(BR2_PACKAGE_KODI_OPTICALDRIVE),y)
+KODI_DEPENDENCIES += libcdio
 KODI_CONF_OPTS += -DENABLE_OPTICAL=ON
 else
 KODI_CONF_OPTS += -DENABLE_OPTICAL=OFF
+endif
+
+ifeq ($(BR2_PACKAGE_KODI_PIPEWIRE),y)
+KODI_CONF_OPTS += -DENABLE_PIPEWIRE=ON
+KODI_DEPENDENCIES += pipewire
+else
+KODI_CONF_OPTS += -DENABLE_PIPEWIRE=OFF
 endif
 
 ifeq ($(BR2_PACKAGE_KODI_PULSEAUDIO),y)
@@ -370,6 +368,13 @@ KODI_CONF_OPTS += -DENABLE_PULSEAUDIO=ON
 KODI_DEPENDENCIES += pulseaudio
 else
 KODI_CONF_OPTS += -DENABLE_PULSEAUDIO=OFF
+endif
+
+ifeq ($(BR2_PACKAGE_LIBUDFREAD),y)
+KODI_CONF_OPTS += -DENABLE_UDFREAD=ON
+KODI_DEPENDENCIES += libudfread
+else
+KODI_CONF_OPTS += -DENABLE_UDFREAD=OFF
 endif
 
 # Remove versioncheck addon, updating Kodi is done by building a new
@@ -410,11 +415,6 @@ endef
 define KODI_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -D -m 644 package/kodi/kodi.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/kodi.service
-
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-
-	ln -fs ../../../../usr/lib/systemd/system/kodi.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/kodi.service
 endef
 
 $(eval $(cmake-package))

@@ -1,2 +1,4 @@
-# Locally calculated from download (no sig, hash)
-sha256	5166c185ae23c92e8b9feee66a6e3d0bc944bf673112f53e3ecf62e08ce7c201	sysklogd-1.5.1.tar.gz
+# From https://github.com/troglobit/sysklogd/releases/tag/v2.8.0
+sha256  67f49c6b2e9d75ce15202db815112719f4af0db8901032f0c3a0cec1b9f65551  sysklogd-2.8.0.tar.gz
+# Locally calculated
+sha256  7a71d7603a7c4456df441463e54da35acf151c1be0879246de63544f1f34f477  LICENSE

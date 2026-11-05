@@ -4,36 +4,32 @@
 #
 ################################################################################
 
-QUAZIP_VERSION = 0.7.3
-QUAZIP_SITE = http://sourceforge.net/projects/quazip/files/quazip/$(QUAZIP_VERSION)
+QUAZIP_VERSION = 1.7.2
+QUAZIP_SITE = $(call github,stachenov,quazip,v$(QUAZIP_VERSION))
 QUAZIP_INSTALL_STAGING = YES
-QUAZIP_DEPENDENCIES = \
-	zlib \
-	$(if $(BR2_PACKAGE_QT),qt) \
-	$(if $(BR2_PACKAGE_QT5),qt5base)
-QUAZIP_LICENSE = LGPL-2.1
-QUAZIP_LICENSE_FILES = COPYING
+QUAZIP_DEPENDENCIES = zlib
 
-ifeq ($(BR2_PACKAGE_QT5),y)
-QUAZIP_QMAKE = $(QT5_QMAKE)
-else
-QUAZIP_QMAKE = $(QT_QMAKE)
+ifeq ($(BR2_PACKAGE_QT5BASE),y)
+QUAZIP_DEPENDENCIES +=  qt5base
+endif
+ifeq ($(BR2_PACKAGE_QT6BASE),y)
+QUAZIP_DEPENDENCIES +=  qt6base qt6core5compat
 endif
 
-define QUAZIP_CONFIGURE_CMDS
-	(cd $(@D); $(TARGET_MAKE_ENV) $(QUAZIP_QMAKE) PREFIX=/usr)
+ifeq ($(BR2_PACKAGE_QUAZIP_INSTALL_TESTS),y)
+QUAZIP_CONF_OPTS += -DQUAZIP_ENABLE_TESTS=ON
+
+define QUAZIP_INSTALL_TESTS
+	$(INSTALL) -D -m 0755 $(@D)/qztest/qztest $(TARGET_DIR)/usr/bin/qztest
 endef
 
-define QUAZIP_BUILD_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)
-endef
+QUAZIP_POST_INSTALL_TARGET_HOOKS += QUAZIP_INSTALL_TESTS
+else
+QUAZIP_CONF_OPTS += -DQUAZIP_ENABLE_TESTS=OFF
+endif
 
-define QUAZIP_INSTALL_STAGING_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) install INSTALL_ROOT=$(STAGING_DIR)
-endef
+QUAZIP_LICENSE = LGPL-2.1
+QUAZIP_LICENSE_FILES = COPYING
+QUAZIP_CPE_ID_VALID = YES
 
-define QUAZIP_INSTALL_TARGET_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) install INSTALL_ROOT=$(TARGET_DIR)
-endef
-
-$(eval $(generic-package))
+$(eval $(cmake-package))

@@ -4,11 +4,14 @@
 #
 ################################################################################
 
-PYTHON_CSSUTILS_VERSION = 1.0.1
+PYTHON_CSSUTILS_VERSION = 2.15.0
 PYTHON_CSSUTILS_SOURCE = cssutils-$(PYTHON_CSSUTILS_VERSION).tar.gz
-PYTHON_CSSUTILS_SITE = https://pypi.python.org/packages/22/de/6b03e0088baf0299ab7d2e95a9e26c2092e9cb3855876b958b6a62175ca2
+PYTHON_CSSUTILS_SITE = https://files.pythonhosted.org/packages/01/00/7e89107ea389e952eea73b1b90ac6633e15a519c4a518ee90bb93a2f83dc
 PYTHON_CSSUTILS_LICENSE = LGPL-3.0+
-PYTHON_CSSUTILS_LICENSE_FILES = COPYING.LESSER
+PYTHON_CSSUTILS_LICENSE_FILES = LICENSE
 PYTHON_CSSUTILS_SETUP_TYPE = setuptools
+PYTHON_CSSUTILS_DEPENDENCIES = \
+	host-python-coherent-licensed \
+	host-python-setuptools-scm
 
 $(eval $(python-package))

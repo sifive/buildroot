@@ -1,0 +1,36 @@
+// -*- mode:doc; -*-
+// vim: set syntax=asciidoc:
+
+[[RELENG]]
+== Release Engineering
+=== Releases
+
+The Buildroot project makes quarterly stable releases with monthly bugfix
+releases. Starting with 2025.02, the first release of every odd-numbered year
+is a long-term support (LTS) release supported for three years.
+
+ - LTS releases: 2025.02, 2027.02, 2029.02 ...
+ - Non-LTS releases: 2025.05, 2025.08, 2025.11, 2026.02, ...
+ - Bugfix releases: 2025.02.1, 2025.02.2, ...
+
+LTS releases are supported for three years, with a one-year overlap with the
+next LTS release, e.g., 2025.02.x is EOL when 2028.02 is released.
+
+Non-LTS releases are supported until the next release, e.g., 2025.05.x is EOL
+when 2025.08 is released.
+
+See the table at https://lts.buildroot.org/#releases[lts.buildroot.org].
+
+=== Development
+
+Each release cycle consist of two months of development on the +master+
+branch and one month stabilization before the release is made.  During
+this phase no new features are added to +master+, only bugfixes.
+
+The stabilization phase starts with tagging +-rc1+, and every week until
+the release, another release candidate is tagged.
+
+To handle new features and version bumps during the stabilization phase,
+a +next+ branch may be created for these features.  Once the current
+release has been made, the +next+ branch is merged into +master+ and
+the development cycle for the next release continues there.

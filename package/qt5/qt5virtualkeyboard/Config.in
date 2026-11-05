@@ -1,13 +1,6 @@
-comment "qt5virtualkeyboard needs at least qt-5.7 and an OpenGL backend"
-	depends on BR2_PACKAGE_QT5_JSCORE_AVAILABLE
-	depends on !BR2_PACKAGE_QT5_VERSION_LATEST || !BR2_PACKAGE_QT5_GL_AVAILABLE
-
 config BR2_PACKAGE_QT5VIRTUALKEYBOARD
 	bool "qt5virtualkeyboard"
-	# needs at least Qt 5.7
-	depends on BR2_PACKAGE_QT5_VERSION_LATEST
 	depends on BR2_PACKAGE_QT5_JSCORE_AVAILABLE # qt5declarative
-	depends on BR2_PACKAGE_QT5_GL_AVAILABLE # qt5declarative quick
 	select BR2_PACKAGE_QT5DECLARATIVE
 	select BR2_PACKAGE_QT5DECLARATIVE_QUICK
 	select BR2_PACKAGE_QT5SVG
@@ -15,6 +8,8 @@ config BR2_PACKAGE_QT5VIRTUALKEYBOARD
 	  Qt Virtual Keyboard is a virtual keyboard framework that
 	  consists of a C++ backend supporting custom input methods as
 	  well as a UI frontend implemented in QML.
+
+	  https://doc.qt.io/qt-5/qtvirtualkeyboard-index.html
 
 if BR2_PACKAGE_QT5VIRTUALKEYBOARD
 
@@ -36,7 +31,7 @@ config BR2_PACKAGE_QT5VIRTUALKEYBOARD_LANGUAGE_LAYOUTS
 	  - Norwegian (nb_NO)
 	  - Persian/Farsi (fa_FA)
 	  - Polish (pl_PL)
-	  - Portugese (pt_PT)
+	  - Portuguese (pt_PT)
 	  - Romanian (ro_RO)
 	  - Russian (ru_RU)
 	  - Simplified Chinese (zh_CN)
@@ -54,5 +49,11 @@ config BR2_PACKAGE_QT5VIRTUALKEYBOARD_HANDWRITING
 
 	  Lipi Toolkit (LipiTk) is an open source toolkit for online
 	  Handwriting Recognition.
+
+config BR2_PACKAGE_QT5VIRTUALKEYBOARD_ARROW_KEY_NAVIGATION
+	bool "Arrow key navigation"
+	help
+	  Allows controlling the keyboard using the arrow and return
+	  keys.
 
 endif

@@ -1,0 +1,3 @@
+# computed by luarocks/buildroot
+sha256  d41d736a309b14fed859ed4d3a49de89ef8f6565a7143570ed0cf1ccdbaebf29  lrexlib-pcre2-2.9.4-1.src.rock
+sha256  c1f071c55958bc56292706c46eaae7a58f6876dfd8ee125b33f7db0700883403  lrexlib/LICENSE

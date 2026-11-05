@@ -9,12 +9,12 @@ DHRYSTONE_SOURCE = dhry-c
 DHRYSTONE_SITE = http://www.netlib.org/benchmark
 
 define DHRYSTONE_EXTRACT_CMDS
-	(cd $(@D) && $(SHELL) $(DL_DIR)/$($(PKG)_SOURCE))
+	(cd $(@D) && $(SHELL) $(DHRYSTONE_DL_DIR)/$($(PKG)_SOURCE))
 	$(Q)cp package/dhrystone/Makefile $(@D)/
 endef
 
 define DHRYSTONE_BUILD_CMDS
-	$(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D)
+	$(TARGET_CONFIGURE_OPTS) CFLAGS="$(TARGET_CFLAGS) -std=gnu99" $(MAKE) -C $(@D)
 endef
 
 define DHRYSTONE_INSTALL_TARGET_CMDS

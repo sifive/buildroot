@@ -4,11 +4,19 @@
 #
 ################################################################################
 
-PYTHON_REQUESTS_VERSION = 2.18.1
+PYTHON_REQUESTS_VERSION = 2.34.2
 PYTHON_REQUESTS_SOURCE = requests-$(PYTHON_REQUESTS_VERSION).tar.gz
-PYTHON_REQUESTS_SITE = https://pypi.python.org/packages/2c/b5/2b6e8ef8dd18203b6399e9f28c7d54f6de7b7549853fe36d575bd31e29a7
+PYTHON_REQUESTS_SITE = https://files.pythonhosted.org/packages/ac/c3/e2a2b89f2d3e2179abd6d00ebd70bff6273f37fb3e0cc209f48b39d00cbf
 PYTHON_REQUESTS_SETUP_TYPE = setuptools
 PYTHON_REQUESTS_LICENSE = Apache-2.0
 PYTHON_REQUESTS_LICENSE_FILES = LICENSE
+PYTHON_REQUESTS_CPE_ID_VENDOR = python
+PYTHON_REQUESTS_CPE_ID_PRODUCT = requests
+HOST_PYTHON_REQUESTS_DEPENDENCIES = \
+	host-python-certifi \
+	host-python-charset-normalizer \
+	host-python-idna \
+	host-python-urllib3
 
 $(eval $(python-package))
+$(eval $(host-python-package))

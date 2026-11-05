@@ -4,10 +4,11 @@
 #
 ################################################################################
 
-GNUPLOT_VERSION = 5.0.6
+GNUPLOT_VERSION = 6.0.4
 GNUPLOT_SITE = http://downloads.sourceforge.net/project/gnuplot/gnuplot/$(GNUPLOT_VERSION)
 GNUPLOT_LICENSE = gnuplot license (open source)
 GNUPLOT_LICENSE_FILES = Copyright
+GNUPLOT_CPE_ID_VENDOR = gnuplot
 
 GNUPLOT_AUTORECONF = YES
 
@@ -22,7 +23,8 @@ GNUPLOT_CONF_OPTS = \
 	--disable-wxwidgets \
 	--without-lua \
 	--without-latex \
-	--without-cairo
+	--without-cairo \
+	--without-qt
 
 # relocation truncated to fit: R_68K_GOT16O
 ifeq ($(BR2_m68k_cf),y)
@@ -31,9 +33,7 @@ endif
 
 ifeq ($(BR2_PACKAGE_GD)$(BR2_PACKAGE_LIBPNG),yy)
 GNUPLOT_CONF_OPTS += --with-gd
-GNUPLOT_DEPENDENCIES += gd
-GNUPLOT_CONF_ENV += \
-	ac_cv_path_GDLIB_CONFIG=$(STAGING_DIR)/usr/bin/gdlib-config
+GNUPLOT_DEPENDENCIES += host-pkgconf gd
 else
 GNUPLOT_CONF_OPTS += --without-gd
 endif
@@ -41,8 +41,9 @@ endif
 ifeq ($(BR2_PACKAGE_READLINE),y)
 GNUPLOT_CONF_OPTS += --with-readline=gnu
 GNUPLOT_DEPENDENCIES += readline
-else
-GNUPLOT_CONF_OPTS += --without-readline
+else ifeq ($(BR2_PACKAGE_LIBEDIT),y)
+GNUPLOT_CONF_OPTS += --with-readline=bsd
+GNUPLOT_DEPENDENCIES += libedit
 endif
 
 # Remove Javascript scripts, lua scripts, PostScript files

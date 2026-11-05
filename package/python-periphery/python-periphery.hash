@@ -1,0 +1,5 @@
+# md5, sha256 from https://pypi.org/pypi/python-periphery/json
+md5  c7d00f4ff0409d88ede49768dad1d733  python_periphery-2.4.2.tar.gz
+sha256  9b334a31832ba64f74aa72700ee5fd6452d79d1d1fa6a0b48333bdb716d91575  python_periphery-2.4.2.tar.gz
+# Locally computed sha256 checksums
+sha256  baff9efffe2d42c0e58271d177c3456a7e436ec7c5c47a02da91bbc76de83877  LICENSE

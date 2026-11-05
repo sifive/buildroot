@@ -1,2 +1,4 @@
-# From http://www.multiprecision.org/index.php?prog=mpc&page=download
-sha1	b8be66396c726fdc36ebb0f692ed8a8cca3bcc66	mpc-1.0.3.tar.gz
+# Locally calculated after verifying GPG signature
+sha256  91204cd32f164bd3b7c992d4a6a8ce6519511aadab30f78b6982d0bf8d73e931  mpc-1.4.1.tar.xz
+# Locally calculated
+sha256  da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768  COPYING.LESSER

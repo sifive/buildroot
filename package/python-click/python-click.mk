@@ -4,11 +4,11 @@
 #
 ################################################################################
 
-PYTHON_CLICK_VERSION = 6.7
+PYTHON_CLICK_VERSION = 8.5.0
 PYTHON_CLICK_SOURCE = click-$(PYTHON_CLICK_VERSION).tar.gz
-PYTHON_CLICK_SITE = https://pypi.python.org/packages/95/d9/c3336b6b5711c3ab9d1d3a80f1a3e2afeb9d8c02a7166462f6cc96570897
+PYTHON_CLICK_SITE = https://files.pythonhosted.org/packages/c7/0e/7fa0ef50764b67090eca4114772a2abf8b6148198475e54c660b97caeee6
+PYTHON_CLICK_SETUP_TYPE = flit
 PYTHON_CLICK_LICENSE = BSD-3-Clause
-PYTHON_CLICK_LICENSE_FILES = LICENSE
-PYTHON_CLICK_SETUP_TYPE = setuptools
+PYTHON_CLICK_LICENSE_FILES = LICENSE.txt
 
 $(eval $(python-package))

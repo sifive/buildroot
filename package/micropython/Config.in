@@ -2,15 +2,41 @@ config BR2_PACKAGE_MICROPYTHON
 	bool "micropython"
 	depends on BR2_TOOLCHAIN_HAS_THREADS
 	depends on !BR2_STATIC_LIBS
-	# libffi doesn't provide the closure implementation on Blackfin
-	depends on !BR2_bfin
-	select BR2_PACKAGE_LIBFFI
 	help
-	  Micro Python is a lean and fast implementation of the Python 3
-	  programming language that is optimised to run on a microcontroller.
+	  MicroPython is a lean and fast implementation of the Python
+	  3 programming language that is optimised to run on a
+	  microcontroller.
 
-	  http://micropython.org
+	  https://micropython.org
+
+if BR2_PACKAGE_MICROPYTHON
+
+config BR2_PACKAGE_MICROPYTHON_LIB
+	bool "micropython-lib"
+	help
+	  Core Python libraries ported to MicroPython.
+
+	  This contains compatible but reduced-functionality versions
+	  of some Python standard library and wider Python ecosystem
+	  modules, as well as some MicroPython-specific libraries
+	  that aren't included in the base package.
+
+if BR2_PACKAGE_MICROPYTHON_LIB
+
+config BR2_PACKAGE_MICROPYTHON_LIB_UNIXFFI
+	bool "micropython-lib unix-ffi modules"
+	default y
+	select BR2_PACKAGE_LIBFFI
+	select BR2_PACKAGE_PCRE2 # runtime
+	help
+	  Unix-specific MicroPython packages
+
+	  These provide additional functionality to MicroPython in
+	  standard environments.
+
+endif # BR2_PACKAGE_MICROPYTHON_LIB
+
+endif # BR2_PACKAGE_MICROPYTHON
 
 comment "micropython needs a toolchain w/ threads, dynamic library"
 	depends on !BR2_TOOLCHAIN_HAS_THREADS || BR2_STATIC_LIBS
-	depends on !BR2_bfin

@@ -1,0 +1,7 @@
+# Locally calculated after checking pgp signature
+# from https://web.mit.edu/kerberos/dist/krb5/1.22/krb5-1.22.2.tar.gz.asc
+# with key C4493CB739F4A89F9852CBC20CBA08575F8372DF
+sha256  3243ffbc8ea4d4ac22ddc7dd2a1dc54c57874c40648b60ff97009763554eaf13  krb5-1.22.2.tar.gz
+
+# Hash for license file:
+sha256  d37fcb886de2ad1c602f61c99c6893bcbd9a1949f54d9a6bb40d191204eb605e  NOTICE

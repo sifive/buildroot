@@ -4,13 +4,22 @@
 #
 ################################################################################
 
-NETSNMP_VERSION = 5.7.3
-NETSNMP_SITE = http://downloads.sourceforge.net/project/net-snmp/net-snmp/$(NETSNMP_VERSION)
+NETSNMP_VERSION = 5.9.5.2
+NETSNMP_SITE = https://downloads.sourceforge.net/project/net-snmp/net-snmp/$(NETSNMP_VERSION)
 NETSNMP_SOURCE = net-snmp-$(NETSNMP_VERSION).tar.gz
 NETSNMP_LICENSE = Various BSD-like
 NETSNMP_LICENSE_FILES = COPYING
+NETSNMP_CPE_ID_VENDOR = net-snmp
+NETSNMP_CPE_ID_PRODUCT = $(NETSNMP_CPE_ID_VENDOR)
+NETSNMP_SELINUX_MODULES = snmp
 NETSNMP_INSTALL_STAGING = YES
-NETSNMP_CONF_ENV = ac_cv_NETSNMP_CAN_USE_SYSCTL=no
+
+# 0001-moving-Werror-declaration-after-statement-to-only-fo.patch
+NETSNMP_AUTORECONF = YES
+
+NETSNMP_CONF_ENV = \
+	ac_cv_NETSNMP_CAN_USE_SYSCTL=no \
+	ac_cv_path_PSPROG=/bin/ps
 NETSNMP_CONF_OPTS = \
 	--with-persistent-directory=/var/lib/snmp \
 	--with-defaults \
@@ -30,13 +39,20 @@ NETSNMP_CONF_OPTS = \
 	--with-sys-location="Unknown" \
 	--with-mib-modules="$(call qstrip,$(BR2_PACKAGE_NETSNMP_WITH_MIB_MODULES))" \
 	--with-out-mib-modules="$(call qstrip,$(BR2_PACKAGE_NETSNMP_WITHOUT_MIB_MODULES))" \
-	--with-out-transports="Unix" \
 	--disable-manuals
 NETSNMP_INSTALL_STAGING_OPTS = DESTDIR=$(STAGING_DIR) LIB_LDCONFIG_CMD=true install
 NETSNMP_INSTALL_TARGET_OPTS = DESTDIR=$(TARGET_DIR) LIB_LDCONFIG_CMD=true install
-NETSNMP_MAKE = $(MAKE1)
 NETSNMP_CONFIG_SCRIPTS = net-snmp-config
-NETSNMP_AUTORECONF = YES
+
+define NETSNMP_USERS
+	snmp -1 snmp -1 * - - - snmpd user
+endef
+
+ifeq ($(BR2_INIT_SYSTEMD),y)
+NETSNMP_CONF_OPTS += --with-systemd
+else
+NETSNMP_CONF_OPTS += --without-systemd
+endif
 
 ifeq ($(BR2_ENDIAN),"BIG")
 NETSNMP_CONF_OPTS += --with-endianness=big
@@ -53,15 +69,12 @@ endif
 
 # OpenSSL
 ifeq ($(BR2_PACKAGE_OPENSSL),y)
-NETSNMP_DEPENDENCIES += openssl
+NETSNMP_DEPENDENCIES += host-pkgconf openssl
 NETSNMP_CONF_OPTS += \
 	--with-openssl=$(STAGING_DIR)/usr/include/openssl \
 	--with-security-modules="tsm,usm" \
 	--with-transports="DTLSUDP,TLSTCP"
-ifeq ($(BR2_STATIC_LIBS),y)
-# openssl uses zlib, so we need to explicitly link with it when static
-NETSNMP_CONF_ENV += LIBS=-lz
-endif
+NETSNMP_CONF_ENV += LIBS=`$(PKG_CONFIG_HOST_BINARY) --libs openssl`
 else ifeq ($(BR2_PACKAGE_NETSNMP_OPENSSL_INTERNAL),y)
 NETSNMP_CONF_OPTS += --with-openssl=internal
 else
@@ -81,6 +94,10 @@ endif
 ifneq ($(BR2_PACKAGE_NETSNMP_ENABLE_MIBS),y)
 NETSNMP_CONF_OPTS += --disable-mib-loading
 NETSNMP_CONF_OPTS += --disable-mibs
+endif
+
+ifeq ($(BR2_PACKAGE_NETSNMP_ENABLE_READ_ONLY),y)
+NETSNMP_CONF_OPTS += --enable-read-only
 endif
 
 ifneq ($(BR2_PACKAGE_NETSNMP_ENABLE_DEBUGGING),y)
@@ -104,14 +121,10 @@ define NETSNMP_INSTALL_INIT_SYSV
 	$(INSTALL) -D -m 0755 package/netsnmp/S59snmpd \
 		$(TARGET_DIR)/etc/init.d/S59snmpd
 endef
-endif
-
-define NETSNMP_STAGING_NETSNMP_CONFIG_FIXUP
-	$(SED)	"s,^includedir=.*,includedir=\'$(STAGING_DIR)/usr/include\',g" \
-		-e "s,^libdir=.*,libdir=\'$(STAGING_DIR)/usr/lib\',g" \
-		$(STAGING_DIR)/usr/bin/net-snmp-config
+define NETSNMP_INSTALL_INIT_SYSTEMD
+	$(INSTALL) -D -m 0644 package/netsnmp/snmpd.service \
+		$(TARGET_DIR)/usr/lib/systemd/system/snmpd.service
 endef
-
-NETSNMP_POST_INSTALL_STAGING_HOOKS += NETSNMP_STAGING_NETSNMP_CONFIG_FIXUP
+endif
 
 $(eval $(autotools-package))

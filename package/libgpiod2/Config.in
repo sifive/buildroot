@@ -1,0 +1,48 @@
+config BR2_PACKAGE_LIBGPIOD2
+	bool "libgpiod2"
+	depends on BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_10
+	depends on !BR2_PACKAGE_LIBGPIOD
+	help
+	  This is a C library that abstracts the GPIO character
+	  device operations on linux.
+
+	  This package is the continuation of the libgpiod package
+	  for versions 2.0 and above.
+
+	  Note that a kernel of 5.10 or above is required for the
+	  ioctls to work.
+
+	  https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git/
+
+if BR2_PACKAGE_LIBGPIOD2
+
+config BR2_PACKAGE_LIBGPIOD2_DBUS
+	bool "install dbus-server and client"
+	depends on BR2_PACKAGE_HAS_UDEV # libgudev
+	depends on BR2_TOOLCHAIN_HAS_THREADS # libgudev
+	depends on BR2_USE_MMU # libgudev
+	depends on BR2_USE_WCHAR # libgudev
+	select BR2_PACKAGE_LIBGUDEV
+	help
+	  Include dbus-server and client for managing GPIOs.
+
+comment "libgpiod2 dbus needs udev /dev management"
+	depends on BR2_USE_MMU
+	depends on !BR2_PACKAGE_HAS_UDEV
+
+comment "libgpiod2 dbus needs a toolchain w/ threads, wchar"
+	depends on BR2_USE_MMU
+	depends on !BR2_TOOLCHAIN_HAS_THREADS || !BR2_USE_WCHAR
+
+config BR2_PACKAGE_LIBGPIOD2_TOOLS
+	bool "install tools"
+	help
+	  Include a set of command-line tools for managing GPIOs.
+
+endif
+
+comment "libgpiod2 needs kernel headers >= 5.10"
+	depends on !BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_10
+
+comment "libgpiod2 is incompatible with libgpiod"
+	depends on BR2_PACKAGE_LIBGPIOD

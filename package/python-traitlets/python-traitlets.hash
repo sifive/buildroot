@@ -1,3 +1,5 @@
-# md5 from https://pypi.python.org/pypi/traitlets/json, sha256 locally computed
-md5 3068663f2f38fd939a9eb3a500ccc154 traitlets-4.3.2.tar.gz
-sha256 9c4bd2d267b7153df9152698efb1050a5d84982d3384a37b2c1f7723ba3e7835 traitlets-4.3.2.tar.gz
+# md5, sha256 from https://pypi.org/pypi/traitlets/json
+md5  bbf948ab08b87c41b51e3aeefbf7d110  traitlets-5.16.1.tar.gz
+sha256  ed900c2b631aa3a112811139fa97b8d2c3bad5e989656bba4b7e52c7852c18c1  traitlets-5.16.1.tar.gz
+# Locally computed sha256 checksums
+sha256  2f51727d9063b54856773cb51388bdb79f2936ee4a1b692ef553d8c4201311ab  LICENSE

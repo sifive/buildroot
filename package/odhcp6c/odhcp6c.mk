@@ -4,10 +4,12 @@
 #
 ################################################################################
 
-ODHCP6C_VERSION = 7533a6243dc3ac5a747cf6ccbc4d0539dafd3e07
-ODHCP6C_SITE = $(call github,sbyx,odhcp6c,$(ODHCP6C_VERSION))
+ODHCP6C_VERSION = 10a52220aec9d45803518d8cc4d63e552484ed61
+ODHCP6C_SITE = https://git.openwrt.org/project/odhcp6c.git
+ODHCP6C_SITE_METHOD = git
 ODHCP6C_LICENSE = GPL-2.0
 ODHCP6C_LICENSE_FILES = COPYING
+ODHCP6C_DEPENDENCIES = libubox
 
 define ODHCP6C_INSTALL_SCRIPT
 	$(INSTALL) -m 0755 -D $(@D)/odhcp6c-example-script.sh \

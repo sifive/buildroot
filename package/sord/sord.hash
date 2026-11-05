@@ -1,0 +1,4 @@
+# Locally calculated after checking signature
+# https://download.drobilla.net/sord-0.16.22.tar.xz.sig
+sha256  bb23b34b216579136795d518cffa73d91cf205594ce9accebfd408afb839173f  sord-0.16.22.tar.xz
+sha256  ae223adebe7cc1ee0716e0f926d1ecc8e42c6e4da7e1d7418c9c07fae244bbde  COPYING

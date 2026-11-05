@@ -1,2 +1,4 @@
-# Locally calculated after checking pgp signature
-sha256 9c13accb1a9e59ab3affde0e60ef9a2149ed4d6e8f99c93c7a5b97499ee323fd  libsodium-1.0.13.tar.gz
+# Locally calculated after checking Minisign signature
+# https://download.libsodium.org/libsodium/releases/libsodium-1.0.22.tar.bz2.minisig
+sha256  51b93737bf62e8549b0e94dce0fba92169e31c8ecc160883460a9bdaa6d2c298  libsodium-1.0.22.tar.bz2
+sha256  508a76d186356c0dd807a670ef510964f8724557024796a2c426c6c0e19ab683  LICENSE

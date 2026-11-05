@@ -4,14 +4,22 @@
 #
 ################################################################################
 
-LIBGPGME_VERSION = 1.9.0
-LIBGPGME_SITE = ftp://ftp.gnupg.org/gcrypt/gpgme
+LIBGPGME_VERSION = 1.24.3
+LIBGPGME_SITE = https://gnupg.org/ftp/gcrypt/gpgme
 LIBGPGME_SOURCE = gpgme-$(LIBGPGME_VERSION).tar.bz2
 LIBGPGME_LICENSE = LGPL-2.1+
 LIBGPGME_LICENSE_FILES = COPYING.LESSER
+LIBGPGME_CPE_ID_VENDOR = gnupg
+LIBGPGME_CPE_ID_PRODUCT = gpgme
 LIBGPGME_INSTALL_STAGING = YES
 LIBGPGME_DEPENDENCIES = libassuan libgpg-error
+LIBGPGME_CONFIG_SCRIPTS = gpgme-config
+
 LIBGPGME_LANGUAGE_BINDINGS = cl
+# C++ bindings require a C++11 capable gcc, and -Wsuggest-override support
+ifeq ($(BR2_INSTALL_LIBSTDCPP)$(BR2_TOOLCHAIN_GCC_AT_LEAST_5),yy)
+LIBGPGME_LANGUAGE_BINDINGS += cpp
+endif
 
 LIBGPGME_CONF_OPTS = \
 	--with-gpg-error-prefix=$(STAGING_DIR)/usr \
@@ -20,12 +28,11 @@ LIBGPGME_CONF_OPTS = \
 	--disable-gpgconf-test \
 	--disable-g13-test \
 	--disable-gpg-test \
-	--enable-languages=$(LIBGPGME_LANGUAGE_BINDINGS)
+	--enable-languages=$(subst $(space),$(comma),$(LIBGPGME_LANGUAGE_BINDINGS))
 
-# C++ bindings require a C++11 capable gcc
-ifeq ($(BR2_INSTALL_LIBSTDCPP)$(BR2_TOOLCHAIN_GCC_AT_LEAST_4_8),yy)
-LIBGPGME_LANGUAGE_BINDINGS := $(LIBGPGME_LANGUAGE_BINDINGS),cpp
-endif
+# Force the path to "gpgrt-config" (from the libgpg-error package) to
+# avoid using the one on host, if present.
+LIBGPGME_CONF_ENV += GPGRT_CONFIG=$(STAGING_DIR)/usr/bin/gpgrt-config
 
 # Handle argp-standalone or it errors out during build
 ifeq ($(BR2_PACKAGE_ARGP_STANDALONE),y)
@@ -35,4 +42,27 @@ LIBGPGME_CONF_ENV += LIBS="-largp" ac_cv_type_error_t=yes
 LIBGPGME_DEPENDENCIES += argp-standalone
 endif
 
+# MIPS N64 (re)introduced getdents64 in kernel version 3.10
+ifeq ($(BR2_MIPS_NABI64)x$(BR2_TOOLCHAIN_HEADERS_AT_LEAST_3_10),yx)
+LIBGPGME_CONF_OPTS += --disable-linux-getdents
+endif
+
+HOST_LIBGPGME_DEPENDENCIES = host-libassuan host-libgpg-error
+
+# C++ bindings require a C++11 capable gcc, and -Wsuggest-override support
+# Let's assume the host toolchain always has C++
+HOST_LIBGPGME_LANGUAGE_BINDINGS = \
+	cl \
+	$(if $(BR2_HOST_GCC_AT_LEAST_5),cpp)
+
+HOST_LIBGPGME_CONF_OPTS = \
+	--with-gpg-error-prefix=$(HOST_DIR) \
+	--with-libassuan-prefix=$(HOST_DIR) \
+	--disable-gpgsm-test \
+	--disable-gpgconf-test \
+	--disable-g13-test \
+	--disable-gpg-test \
+	--enable-languages=$(subst $(space),$(comma),$(HOST_LIBGPGME_LANGUAGE_BINDINGS))
+
 $(eval $(autotools-package))
+$(eval $(host-autotools-package))

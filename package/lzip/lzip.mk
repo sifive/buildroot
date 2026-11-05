@@ -4,10 +4,13 @@
 #
 ################################################################################
 
-LZIP_VERSION = 1.19
+LZIP_VERSION = 1.26
 LZIP_SITE = http://download.savannah.gnu.org/releases/lzip
 LZIP_LICENSE = GPL-2.0+
 LZIP_LICENSE_FILES = COPYING
+
+# The package is a dependency to ccache so ccache cannot be a dependency
+HOST_LZIP_ADD_CCACHE_DEPENDENCY = NO
 
 define LZIP_CONFIGURE_CMDS
 	(cd $(@D); $(TARGET_MAKE_ENV) ./configure --prefix=/usr \
@@ -16,7 +19,7 @@ endef
 
 define HOST_LZIP_CONFIGURE_CMDS
 	(cd $(@D); $(HOST_MAKE_ENV) ./configure --prefix=$(HOST_DIR) \
-		$(HOST_CONFIGURE_OPTS) )
+		$(HOST_CONFIGURE_OPTS) CC="$(HOSTCC_NOCCACHE)" CXX="$(HOSTCXX_NOCCACHE)")
 endef
 
 define LZIP_BUILD_CMDS

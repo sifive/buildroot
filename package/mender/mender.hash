@@ -1,0 +1,27 @@
+# Locally computed:
+sha256  436ae559358f29c672b98ca77b953936ba6ef51455466fb5ed0ced7ae77fc226  mender-5.2.0.tar.gz
+sha256  4d3409e4f8f7f3b9de5da7fee7c03e36a2381a02b2e318702485fc993a735cc9  LIC_FILES_CHKSUM.sha256
+
+# Vendor licenses
+# Generated with sed '/^[A-Za-z0-9_]/s/^/sha256  /' LIC_FILES_CHKSUM.sha256
+
+# Apache-2.0 license.
+sha256  d7e8fd4ad05371007d60285c309ba7a7ce3e61029b843f949fbb9ec79dc9eb47  LICENSE
+#
+# MIT clause license
+sha256  d64d1b4d948aa7751cfb613c02dc246aab7b358d760053e6580f01affe946906  src/common/vendor/json/LICENSE.MIT
+sha256  7920c8620b1e073a79a667c44f9149c25724eb9f0f6b220b3c8d9564e2d40a43  src/common/vendor/json/docs/mkdocs/docs/home/license.md
+sha256  2aefa40fa7e1c0fab18fbad5b15b02406eea1399d3cca42cc1012b65b4a56f74  src/common/vendor/tiny-process-library/LICENSE
+sha256  aa6fcc27be034e41e21dd832f9175bfe694a48491d9e14ff0fa278e19ad14f1b  src/common/vendor/yaml-cpp/LICENSE
+#
+# UNLICENSE
+sha256  7e12e5df4bae12cb21581ba157ced20e1986a0508dd10d0e8a4ab9a4cf94e85c  src/common/vendor/lmdbxx/UNLICENSE
+#
+# CC0 1.0 Universal
+sha256  a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499  src/common/vendor/expected/COPYING
+#
+# Boost Software License
+sha256  c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566  src/common/vendor/optional-lite/LICENSE.txt
+#
+# BSD-3
+sha256  9702de7e4117a8e2b20dafab11ffda58c198aede066406496bef670d40a22138  src/common/vendor/yaml-cpp/test/googletest-1.16.0/LICENSE

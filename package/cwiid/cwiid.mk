@@ -12,18 +12,11 @@ CWIID_LICENSE_FILES = COPYING
 CWIID_AUTORECONF = YES
 CWIID_INSTALL_STAGING = YES
 
-CWIID_DEPENDENCIES = host-pkgconf host-bison host-flex bluez_utils
+CWIID_DEPENDENCIES = host-pkgconf host-bison host-flex bluez5_utils
 
 # Disable python support. This disables the 2 following things:
 #   - wminput Python plugin support
 #   - cwiid Python module
-CWIID_CONF_OPTS = --without-python --disable-ldconfig
-
-ifeq ($(BR2_PACKAGE_CWIID_WMGUI),y)
-CWIID_DEPENDENCIES += libgtk2 libglib2
-CWIID_CONF_OPTS += --enable-wmgui
-else
-CWIID_CONF_OPTS += --disable-wmgui
-endif
+CWIID_CONF_OPTS = --without-python --disable-ldconfig --disable-wmgui
 
 $(eval $(autotools-package))

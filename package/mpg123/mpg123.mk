@@ -4,14 +4,21 @@
 #
 ################################################################################
 
-MPG123_VERSION = 1.25.2
+MPG123_VERSION = 1.33.7
 MPG123_SOURCE = mpg123-$(MPG123_VERSION).tar.bz2
-MPG123_SITE = http://downloads.sourceforge.net/project/mpg123/mpg123/$(MPG123_VERSION)
-MPG123_CONF_OPTS = --disable-lfs-alias
+MPG123_SITE = https://downloads.sourceforge.net/project/mpg123/mpg123/$(MPG123_VERSION)
 MPG123_INSTALL_STAGING = YES
 MPG123_LICENSE = LGPL-2.1
 MPG123_LICENSE_FILES = COPYING
+MPG123_CPE_ID_VENDOR = mpg123
 MPG123_DEPENDENCIES = host-pkgconf
+
+# mpg123 has some assembly function that is not present in Thumb mode:
+# Error: selected processor does not support `smull r3,ip,r2,r10' in Thumb mode
+# so, we deactivate Thumb mode
+ifeq ($(BR2_ARM_INSTRUCTIONS_THUMB),y)
+MPG123_CONF_ENV += CFLAGS="$(TARGET_CFLAGS) -marm"
+endif
 
 MPG123_CPU = $(if $(BR2_SOFT_FLOAT),generic_nofpu,generic_fpu)
 
@@ -19,7 +26,7 @@ ifeq ($(BR2_aarch64),y)
 MPG123_CPU = aarch64
 endif
 
-ifeq ($(BR2_arm),y)
+ifeq ($(BR2_arm)$(BR2_ARM_CPU_HAS_ARM),yy)
 ifeq ($(or $(BR2_ARM_CPU_HAS_NEON),$(BR2_ARM_CPU_HAS_VFPV2)),y)
 MPG123_CPU = arm_fpu
 else
@@ -57,10 +64,10 @@ MPG123_DEPENDENCIES += portaudio
 MPG123_CONF_ENV += LIBS="`$(PKG_CONFIG_HOST_BINARY) --libs portaudio-2.0`"
 endif
 
-ifeq ($(BR2_PACKAGE_SDL),y)
+ifneq ($(BR2_PACKAGE_SDL)$(BR2_PACKAGE_SDL2),)
 MPG123_AUDIO += sdl
 MPG123_CONF_OPTS += --with-default-audio=sdl
-MPG123_DEPENDENCIES += sdl
+MPG123_DEPENDENCIES += $(if $(BR2_PACKAGE_SDL2),sdl2,sdl)
 endif
 
 ifeq ($(BR2_PACKAGE_ALSA_LIB),y)

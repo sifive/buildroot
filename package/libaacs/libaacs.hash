@@ -1,2 +1,5 @@
-# From http://download.videolan.org/pub/videolan/libaacs/0.9.0/libaacs-0.9.0.tar.bz2.sha512
-sha512 b9c658db22a0966486070d3b762509a7c0120469ab29d1e57c1b624cad309701de8b92455ec649db4d731be4a5c29c38fb4f99bb7617dbb4254270284a1903f6  libaacs-0.9.0.tar.bz2
+# From https://download.videolan.org/pub/videolan/libaacs/0.12.0/libaacs-0.12.0.tar.xz.sha512
+sha512  5848e68a1d8e6125af1a02b878ccaa05128ae752722ff245d79918d5b3a0589b486e87fe3b3af9cfda18b04742003e197727aa211cf8c03a505c1336d3a689d2  libaacs-0.12.0.tar.xz
+
+# Hash for license file:
+sha256  592987e8510228d546540b84a22444bde98e48d03078d3b2eefcd889bec5ce8c  COPYING

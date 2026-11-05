@@ -4,22 +4,39 @@
 #
 ################################################################################
 
-# See note below when updating Erlang
-ERLANG_VERSION = 19.3
-ERLANG_SITE = http://www.erlang.org/download
+ERLANG_VERSION = 26.2.5.21
+ERLANG_RELEASE = $(firstword $(subst ., ,$(ERLANG_VERSION)))
+ERLANG_SITE = \
+	https://github.com/erlang/otp/releases/download/OTP-$(ERLANG_VERSION)
 ERLANG_SOURCE = otp_src_$(ERLANG_VERSION).tar.gz
 ERLANG_DEPENDENCIES = host-erlang
 
 ERLANG_LICENSE = Apache-2.0
 ERLANG_LICENSE_FILES = LICENSE.txt
+ERLANG_CPE_ID_VENDOR = erlang
+ERLANG_CPE_ID_PRODUCT = erlang\/otp
 ERLANG_INSTALL_STAGING = YES
 
-# Patched erts/aclocal.m4
-ERLANG_AUTORECONF = YES
+define ERLANG_FIX_AUTOCONF_VERSION
+	$(SED) "s/USE_AUTOCONF_VERSION=.*/USE_AUTOCONF_VERSION=$(AUTOCONF_VERSION)/" $(@D)/otp_build
+endef
 
-# Whenever updating Erlang, this value should be updated as well, to the
-# value of EI_VSN in the file lib/erl_interface/vsn.mk
-ERLANG_EI_VSN = 3.9.3
+# Patched erts/aclocal.m4
+define ERLANG_RUN_AUTOCONF
+	cd $(@D) && PATH=$(BR_PATH) ./otp_build update_configure --no-commit
+endef
+ERLANG_DEPENDENCIES += host-autoconf
+ERLANG_PRE_CONFIGURE_HOOKS += \
+	ERLANG_FIX_AUTOCONF_VERSION \
+	ERLANG_RUN_AUTOCONF
+HOST_ERLANG_DEPENDENCIES += host-autoconf
+HOST_ERLANG_PRE_CONFIGURE_HOOKS += \
+	ERLANG_FIX_AUTOCONF_VERSION \
+	ERLANG_RUN_AUTOCONF
+
+# Return the EIV (Erlang Interface Version, EI_VSN)
+# $(1): base directory, i.e. either $(HOST_DIR) or $(STAGING_DIR)/usr
+erlang_ei_vsn = `sed -r -e '/^erl_interface-(.+)/!d; s//\1/' $(1)/lib/erlang/releases/$(ERLANG_RELEASE)/installed_application_versions`
 
 # The configure checks for these functions fail incorrectly
 ERLANG_CONF_ENV = ac_cv_func_isnan=yes ac_cv_func_isinf=yes
@@ -31,21 +48,17 @@ ERLANG_CONF_ENV += erl_xcomp_sysroot=$(STAGING_DIR)
 ERLANG_CONF_OPTS = --without-javac
 
 # Force ERL_TOP to the downloaded source directory. This prevents
-# Erlang's configure script from inadvertantly using files from
+# Erlang's configure script from inadvertently using files from
 # a version of Erlang installed on the host.
 ERLANG_CONF_ENV += ERL_TOP=$(@D)
 HOST_ERLANG_CONF_ENV += ERL_TOP=$(@D)
 
 # erlang uses openssl for all things crypto. Since the host tools (such as
 # rebar) uses crypto, we need to build host-erlang with support for openssl.
-HOST_ERLANG_DEPENDENCIES = host-openssl
+HOST_ERLANG_DEPENDENCIES += host-openssl
 HOST_ERLANG_CONF_OPTS = --without-javac --with-ssl=$(HOST_DIR)
 
 HOST_ERLANG_CONF_OPTS += --without-termcap
-
-ifeq ($(BR2_TOOLCHAIN_HAS_THREADS),)
-ERLANG_CONF_OPTS += --disable-threads
-endif
 
 ifeq ($(BR2_PACKAGE_NCURSES),y)
 ERLANG_CONF_OPTS += --with-termcap
@@ -61,22 +74,16 @@ else
 ERLANG_CONF_OPTS += --without-ssl
 endif
 
-# ODBC support in erlang requires threads
-ifeq ($(BR2_PACKAGE_UNIXODBC)$(BR2_TOOLCHAIN_HAS_THREADS),yy)
+ifeq ($(BR2_PACKAGE_UNIXODBC),y)
 ERLANG_DEPENDENCIES += unixodbc
 ERLANG_CONF_OPTS += --with-odbc
 else
 ERLANG_CONF_OPTS += --without-odbc
 endif
 
-ifeq ($(BR2_PACKAGE_ZLIB),y)
-ERLANG_CONF_OPTS += --enable-shared-zlib
+# Always use Buildroot's zlib
+ERLANG_CONF_OPTS += --disable-builtin-zlib
 ERLANG_DEPENDENCIES += zlib
-endif
-
-ifeq ($(BR2_PACKAGE_ERLANG_SMP),)
-ERLANG_CONF_OPTS += --disable-smp-support
-endif
 
 # Remove source, example, gs and wx files from staging and target.
 ERLANG_REMOVE_PACKAGES = gs wx

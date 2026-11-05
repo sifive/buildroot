@@ -4,8 +4,8 @@
 #
 ################################################################################
 
-LIBCLI_VERSION = c63c9d35144939c8b4fa3c5394aed2e29ff517b0
-LIBCLI_SITE = $(call github,dparrish,libcli,$(LIBCLI_VERSION))
+LIBCLI_VERSION = 1.10.7
+LIBCLI_SITE = $(call github,dparrish,libcli,V$(LIBCLI_VERSION))
 LIBCLI_LICENSE = LGPL-2.1
 LIBCLI_LICENSE_FILES = COPYING
 LIBCLI_INSTALL_STAGING = YES
@@ -24,6 +24,10 @@ endif
 # Disable the shared library for static only build
 ifeq ($(BR2_STATIC_LIBS),y)
 LIBCLI_MAKE_ARGS += DYNAMIC_LIB=
+endif
+
+ifeq ($(BR2_PACKAGE_LIBXCRYPT),y)
+LIBCLI_DEPENDENCIES += libxcrypt
 endif
 
 define LIBCLI_BUILD_CMDS

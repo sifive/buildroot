@@ -1,34 +1,37 @@
 comment "Binutils Options"
 
+config BR2_PACKAGE_HOST_BINUTILS_SUPPORTS_CFI
+	bool
+	default y
+	depends on !BR2_microblaze
+
 choice
 	prompt "Binutils Version"
-	default BR2_BINUTILS_VERSION_2_28_X
-	depends on !BR2_arc
+	default BR2_BINUTILS_VERSION_2_46_X
 	help
 	  Select the version of binutils you wish to use.
 
-config BR2_BINUTILS_VERSION_2_27_X
-	bool "binutils 2.27"
-	# binutils 2.27 triggers a bug in elf2flt on ARM/noMMU
-	depends on !(BR2_arm && !BR2_USE_MMU)
+config BR2_BINUTILS_VERSION_2_45_X
+	bool "binutils 2.45.1"
 
-config BR2_BINUTILS_VERSION_2_28_X
-	bool "binutils 2.28.1"
+config BR2_BINUTILS_VERSION_2_46_X
+	bool "binutils 2.46.1"
 
-config BR2_BINUTILS_VERSION_2_29_X
-	bool "binutils 2.29.1"
+config BR2_BINUTILS_VERSION_2_47_X
+	bool "binutils 2.47"
 
 endchoice
 
 config BR2_BINUTILS_VERSION
 	string
-	default "arc-2017.09-rc1"	if BR2_arc
-	default "2.27"		if BR2_BINUTILS_VERSION_2_27_X
-	default "2.28.1"	if BR2_BINUTILS_VERSION_2_28_X
-	default "2.29.1"	if BR2_BINUTILS_VERSION_2_29_X
+	default "2.45.1"	if BR2_BINUTILS_VERSION_2_45_X
+	default "2.46.1"	if BR2_BINUTILS_VERSION_2_46_X
+	default "2.47"		if BR2_BINUTILS_VERSION_2_47_X
 
-config BR2_BINUTILS_ENABLE_LTO
-	bool
+config BR2_BINUTILS_GPROFNG
+	bool "gprofng support"
+	help
+	  This option enables support for gprofng, a new profiler.
 
 config BR2_BINUTILS_EXTRA_CONFIG_OPTIONS
 	string "Additional binutils options"

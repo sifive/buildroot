@@ -1,4 +1,5 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later AND MIT
 """
 
 Utility for building Buildroot packages for existing PyPI packages
@@ -6,14 +7,11 @@ Utility for building Buildroot packages for existing PyPI packages
 Any package built by scanpypi should be manually checked for
 errors.
 """
-from __future__ import print_function
 import argparse
 import json
-import urllib2
 import sys
 import os
 import shutil
-import StringIO
 import tarfile
 import zipfile
 import errno
@@ -21,33 +19,75 @@ import hashlib
 import re
 import textwrap
 import tempfile
-import imp
-from functools import wraps
+import traceback
+import importlib
+import importlib.metadata
+import urllib.request
+import urllib.error
+import urllib.parse
+import io
 
-def setup_decorator(func, method):
-    """
-    Decorator for distutils.core.setup and setuptools.setup.
-    Puts the arguments with which setup is called as a dict
-    Add key 'method' which should be either 'setuptools' or 'distutils'.
+BUF_SIZE = 65536
 
-    Keyword arguments:
-    func -- either setuptools.setup or distutils.core.setup
-    method -- either 'setuptools' or 'distutils'
-    """
+try:
+    import spdx_lookup as liclookup
+except ImportError:
+    # spdx_lookup is not installed
+    print('spdx_lookup module is not installed. This can lead to an '
+          'inaccurate licence detection. Please install it via\n'
+          'pip install spdx_lookup')
+    liclookup = None
 
-    @wraps(func)
-    def closure(*args, **kwargs):
-        # Any python packages calls its setup function to be installed.
-        # Argument 'name' of this setup function is the package's name
-        BuildrootPackage.setup_args[kwargs['name']] = kwargs
-        BuildrootPackage.setup_args[kwargs['name']]['method'] = method
-    return closure
 
-# monkey patch
-import setuptools
-setuptools.setup = setup_decorator(setuptools.setup, 'setuptools')
-import distutils
-distutils.core.setup = setup_decorator(setuptools.setup, 'distutils')
+def toml_load(f):
+    with open(f, 'rb') as fh:
+        ex = None
+
+        # Try standard library tomllib first
+        try:
+            from tomllib import load
+            return load(fh)
+        except ImportError:
+            pass
+
+        # Try regular tomli next
+        try:
+            from tomli import load
+            return load(fh)
+        except ImportError as e:
+            ex = e
+
+        # Try pip's vendored tomli
+        try:
+            from pip._vendor.tomli import load
+            try:
+                return load(fh)
+            except TypeError:
+                # Fallback to handle older version
+                try:
+                    fh.seek(0)
+                    w = io.TextIOWrapper(fh, encoding="utf8", newline="")
+                    return load(w)
+                finally:
+                    w.detach()
+        except ImportError:
+            pass
+
+        # Try regular toml last
+        try:
+            from toml import load
+            fh.seek(0)
+            w = io.TextIOWrapper(fh, encoding="utf8", newline="")
+            try:
+                return load(w)
+            finally:
+                w.detach()
+        except ImportError:
+            pass
+
+        print('This package needs tomli')
+        raise ex
+
 
 def find_file_upper_case(filenames, path='./'):
     """
@@ -74,14 +114,59 @@ def pkg_buildroot_name(pkg_name):
     Keyword arguments:
     pkg_name -- String to rename
     """
-    name = re.sub('[^\w-]', '', pkg_name.lower())
+    name = re.sub(r'[^\w-]', '', pkg_name.lower())
+    name = name.replace('_', '-')
     prefix = 'python-'
-    pattern = re.compile('^(?!' + prefix + ')(.+?)$')
+    pattern = re.compile(r'^(?!' + prefix + ')(.+?)$')
     name = pattern.sub(r'python-\1', name)
     return name
 
+
 class DownloadFailed(Exception):
     pass
+
+
+# Copied and adapted from
+# https://github.com/pypa/pyproject-hooks/blob/v1.1.0/src/pyproject_hooks/_in_process/_in_process.py
+# SPDX-License-Identifier: MIT
+
+class BackendUnavailable(Exception):
+    """Raised if we cannot import the backend"""
+
+    def __init__(self, message, traceback=None):
+        super().__init__(message)
+        self.message = message
+        self.traceback = traceback
+
+
+class BackendPathFinder:
+    """Implements the MetaPathFinder interface to locate modules in ``backend-path``.
+
+    Since the environment provided by the frontend can contain all sorts of
+    MetaPathFinders, the only way to ensure the backend is loaded from the
+    right place is to prepend our own.
+    """
+
+    def __init__(self, backend_path, backend_module):
+        self.backend_path = backend_path
+        self.backend_module = backend_module
+        self.backend_parent, _, _ = backend_module.partition(".")
+
+    def find_spec(self, fullname, _path, _target=None):
+        if "." in fullname:
+            # Rely on importlib to find nested modules based on parent's path
+            return None
+
+        # Ignore other items in _path or sys.path and use backend_path instead:
+        spec = importlib.machinery.PathFinder.find_spec(fullname, path=self.backend_path)
+        if spec is None and fullname == self.backend_parent:
+            # According to the spec, the backend MUST be loaded from backend-path.
+            # Therefore, we can halt the import machinery and raise a clean error.
+            msg = f"Cannot find module {self.backend_module!r} in {self.backend_path!r}"
+            raise BackendUnavailable(msg)
+
+        return spec
+
 
 class BuildrootPackage():
     """This class's methods are not meant to be used individually please
@@ -118,28 +203,31 @@ class BuildrootPackage():
         self.metadata_url = None
         self.pkg_req = None
         self.setup_metadata = None
+        self.backend_path = None
+        self.build_backend = None
         self.tmp_extract = None
         self.used_url = None
         self.filename = None
         self.url = None
         self.version = None
+        self.license_files = []
 
     def fetch_package_info(self):
         """
         Fetch a package's metadata from the python package index
         """
-        self.metadata_url = 'https://pypi.python.org/pypi/{pkg}/json'.format(
+        self.metadata_url = 'https://pypi.org/pypi/{pkg}/json'.format(
             pkg=self.real_name)
         try:
-            pkg_json = urllib2.urlopen(self.metadata_url).read().decode()
-        except urllib2.HTTPError as error:
+            pkg_json = urllib.request.urlopen(self.metadata_url).read().decode()
+        except urllib.error.HTTPError as error:
             print('ERROR:', error.getcode(), error.msg, file=sys.stderr)
             print('ERROR: Could not find package {pkg}.\n'
                   'Check syntax inside the python package index:\n'
                   'https://pypi.python.org/pypi/ '
                   .format(pkg=self.real_name))
             raise
-        except urllib2.URLError:
+        except urllib.error.URLError:
             print('ERROR: Could not find package {pkg}.\n'
                   'Check syntax inside the python package index:\n'
                   'https://pypi.python.org/pypi/ '
@@ -153,6 +241,7 @@ class BuildrootPackage():
         """
         Download a package using metadata from pypi
         """
+        download = None
         try:
             self.metadata['urls'][0]['filename']
         except IndexError:
@@ -162,10 +251,10 @@ class BuildrootPackage():
             self.metadata['urls'] = [{
                 'packagetype': 'sdist',
                 'url': self.metadata['info']['download_url'],
-                'md5_digest': None}]
+                'digests': None}]
             # In this case, we can't get the name of the downloaded file
             # from the pypi api, so we need to find it, this should work
-            urlpath = urllib2.urlparse.urlparse(
+            urlpath = urllib.parse.urlparse(
                 self.metadata['info']['download_url']).path
             # urlparse().path give something like
             # /path/to/file-version.tar.gz
@@ -176,34 +265,53 @@ class BuildrootPackage():
                 continue
             try:
                 print('Downloading package {pkg} from {url}...'.format(
-                      pkg=self.real_name, url=download_url['url']))
-                download = urllib2.urlopen(download_url['url'])
-            except urllib2.HTTPError as http_error:
+                    pkg=self.real_name, url=download_url['url']))
+                download = urllib.request.urlopen(download_url['url'])
+            except urllib.error.HTTPError as http_error:
                 download = http_error
             else:
                 self.used_url = download_url
                 self.as_string = download.read()
-                if not download_url['md5_digest']:
+                if not download_url['digests']['md5']:
                     break
                 self.md5_sum = hashlib.md5(self.as_string).hexdigest()
-                if self.md5_sum == download_url['md5_digest']:
+                if self.md5_sum == download_url['digests']['md5']:
                     break
-        else:
-            if download.__class__ == urllib2.HTTPError:
-                raise download
-            raise DownloadFailed('Failed to downloas package {pkg}'
+
+        if download is None:
+            raise DownloadFailed('Failed to download package {pkg}: '
+                                 'No source archive available'
                                  .format(pkg=self.real_name))
+        elif download.__class__ == urllib.error.HTTPError:
+            raise download
+
         self.filename = self.used_url['filename']
         self.url = self.used_url['url']
 
+    def check_archive(self, members):
+        """
+        Check archive content before extracting
+
+        Keyword arguments:
+        members -- list of archive members
+        """
+        # Protect against https://github.com/snyk/zip-slip-vulnerability
+        # Older python versions do not validate that the extracted files are
+        # inside the target directory. Detect and error out on evil paths
+        evil = [e for e in members if os.path.relpath(e).startswith(('/', '..'))]
+        if evil:
+            print('ERROR: Refusing to extract {} with suspicious members {}'.format(
+                self.filename, evil))
+            sys.exit(1)
+
     def extract_package(self, tmp_path):
         """
-        Extract the package contents into a directrory
+        Extract the package content into a directory
 
         Keyword arguments:
         tmp_path -- directory where you want the package to be extracted
         """
-        as_file = StringIO.StringIO(self.as_string)
+        as_file = io.BytesIO(self.as_string)
         if self.filename[-3:] == 'zip':
             with zipfile.ZipFile(as_file) as as_zipfile:
                 tmp_pkg = os.path.join(tmp_path, self.buildroot_name)
@@ -211,13 +319,15 @@ class BuildrootPackage():
                     os.makedirs(tmp_pkg)
                 except OSError as exception:
                     if exception.errno != errno.EEXIST:
-                        print("ERROR: ", exception.message, file=sys.stderr)
-                        return None, None
-                    print('WARNING:', exception.message, file=sys.stderr)
+                        print("ERROR: ", exception.strerror, file=sys.stderr)
+                        return
+                    print('WARNING:', exception.strerror, file=sys.stderr)
                     print('Removing {pkg}...'.format(pkg=tmp_pkg))
                     shutil.rmtree(tmp_pkg)
                     os.makedirs(tmp_pkg)
+                self.check_archive(as_zipfile.namelist())
                 as_zipfile.extractall(tmp_pkg)
+                pkg_filename = self.filename.split(".zip")[0]
         else:
             with tarfile.open(fileobj=as_file) as as_tarfile:
                 tmp_pkg = os.path.join(tmp_path, self.buildroot_name)
@@ -225,47 +335,98 @@ class BuildrootPackage():
                     os.makedirs(tmp_pkg)
                 except OSError as exception:
                     if exception.errno != errno.EEXIST:
-                        print("ERROR: ", exception.message, file=sys.stderr)
-                        return None, None
-                    print('WARNING:', exception.message, file=sys.stderr)
+                        print("ERROR: ", exception.strerror, file=sys.stderr)
+                        return
+                    print('WARNING:', exception.strerror, file=sys.stderr)
                     print('Removing {pkg}...'.format(pkg=tmp_pkg))
                     shutil.rmtree(tmp_pkg)
                     os.makedirs(tmp_pkg)
+                self.check_archive(as_tarfile.getnames())
                 as_tarfile.extractall(tmp_pkg)
+                pkg_filename = self.filename.split(".tar")[0]
 
-        tmp_extract = '{folder}/{name}-{version}'
+        tmp_extract = '{folder}/{name}'
         self.tmp_extract = tmp_extract.format(
             folder=tmp_pkg,
-            name=self.metadata_name,
-            version=self.version)
+            name=pkg_filename)
 
-    def load_setup(self):
+    def load_metadata(self):
         """
         Loads the corresponding setup and store its metadata
         """
         current_dir = os.getcwd()
         os.chdir(self.tmp_extract)
-        sys.path.append(self.tmp_extract)
-        s_file, s_path, s_desc = imp.find_module('setup', [self.tmp_extract])
-        setup = imp.load_module('setup', s_file, s_path, s_desc)
         try:
-            self.setup_metadata = self.setup_args[self.metadata_name]
-        except KeyError:
-            # This means setup was not called which most likely mean that it is
-            # called through the if __name__ == '__main__' directive.
-            # In this case, we can only pray that it is called through a
-            # function called main() in setup.py.
-            setup.main() # Will raise AttributeError if not found
-            self.setup_metadata = self.setup_args[self.metadata_name]
-        # Here we must remove the module the hard way.
-        # We must do this because of a very specific case: if a package calls
-        # setup from the __main__ but does not come with a 'main()' function,
-        # for some reason setup.main() will successfully call the main
-        # function of a previous package...
-        sys.modules.pop('setup',None)
-        del setup
-        os.chdir(current_dir)
-        sys.path.remove(self.tmp_extract)
+            mod_path, _, obj_path = self.build_backend.partition(":")
+
+            path_finder = None
+            if self.backend_path:
+                path_finder = BackendPathFinder(self.backend_path, mod_path)
+                sys.meta_path.insert(0, path_finder)
+
+            try:
+                build_backend = importlib.import_module(self.build_backend)
+            except ImportError:
+                msg = f"Cannot import {mod_path!r}"
+                raise BackendUnavailable(msg, traceback.format_exc())
+
+            if obj_path:
+                for path_part in obj_path.split("."):
+                    build_backend = getattr(build_backend, path_part)
+
+            if path_finder:
+                sys.meta_path.remove(path_finder)
+
+            prepare_metadata_for_build_wheel = getattr(
+                build_backend, 'prepare_metadata_for_build_wheel'
+            )
+            metadata = prepare_metadata_for_build_wheel(self.tmp_extract)
+            try:
+                dist = importlib.metadata.Distribution.at(metadata)
+                self.metadata_name = dist.name
+                if dist.requires:
+                    self.setup_metadata['install_requires'] = dist.requires
+            finally:
+                shutil.rmtree(metadata)
+        finally:
+            os.chdir(current_dir)
+
+    def load_pyproject(self):
+        """
+        Loads the corresponding pyproject.toml and store its metadata
+        """
+        current_dir = os.getcwd()
+        os.chdir(self.tmp_extract)
+        try:
+            pyproject_data = toml_load('pyproject.toml')
+            self.setup_metadata = pyproject_data.get('project', {})
+            self.metadata_name = self.setup_metadata.get('name', self.real_name)
+            build_system = pyproject_data.get('build-system', {})
+            build_backend = build_system.get('build-backend', None)
+            self.backend_path = build_system.get('backend-path', None)
+            if build_backend:
+                self.build_backend = build_backend
+                if build_backend == 'flit_core.buildapi':
+                    self.setup_metadata['method'] = 'flit'
+                elif build_backend == 'hatchling.build':
+                    self.setup_metadata['method'] = 'hatch'
+                elif build_backend == 'poetry.core.masonry.api':
+                    self.setup_metadata['method'] = 'poetry'
+                elif build_backend == 'setuptools.build_meta':
+                    self.setup_metadata['method'] = 'setuptools'
+                else:
+                    if self.backend_path:
+                        self.setup_metadata['method'] = 'pep517'
+                    else:
+                        self.setup_metadata['method'] = 'unknown'
+            else:
+                self.build_backend = 'setuptools.build_meta'
+                self.setup_metadata = {'method': 'setuptools'}
+        except FileNotFoundError:
+            self.build_backend = 'setuptools.build_meta'
+            self.setup_metadata = {'method': 'setuptools'}
+        finally:
+            os.chdir(current_dir)
 
     def get_requirements(self, pkg_folder):
         """
@@ -278,12 +439,21 @@ class BuildrootPackage():
         if 'install_requires' not in self.setup_metadata:
             self.pkg_req = None
             return set()
-        self.pkg_req = self.setup_metadata['install_requires']
-        self.pkg_req = [re.sub('([-.\w]+).*', r'\1', req)
+        self.pkg_req = set()
+        extra_re = re.compile(r'''extra\s*==\s*("([^"]+)"|'([^']+)')''')
+        for req in self.setup_metadata['install_requires']:
+            if not extra_re.search(req):
+                self.pkg_req.add(req)
+        self.pkg_req = [re.sub(r'([-.\w]+).*', r'\1', req)
                         for req in self.pkg_req]
+
+        # get rid of commented lines and also strip the package strings
+        self.pkg_req = {item.strip() for item in self.pkg_req
+                        if len(item) > 0 and item[0] != '#'}
+
         req_not_found = self.pkg_req
-        self.pkg_req = map(pkg_buildroot_name, self.pkg_req)
-        pkg_tuples = zip(req_not_found, self.pkg_req)
+        self.pkg_req = list(map(pkg_buildroot_name, self.pkg_req))
+        pkg_tuples = list(zip(req_not_found, self.pkg_req))
         # pkg_tuples is a list of tuples that looks like
         # ('werkzeug','python-werkzeug') because I need both when checking if
         # dependencies already exist or are already in the download list
@@ -307,7 +477,7 @@ class BuildrootPackage():
 
     def __create_mk_download_info(self):
         """
-        Create the lines refering to the download information of the
+        Create the lines referring to the download information of the
         <package_name>.mk file
         """
         lines = []
@@ -316,13 +486,14 @@ class BuildrootPackage():
             version=self.version)
         lines.append(version_line)
 
-        targz = self.filename.replace(
-            self.version,
-            '$({name}_VERSION)'.format(name=self.mk_name))
-        targz_line = '{name}_SOURCE = {filename}\n'.format(
-            name=self.mk_name,
-            filename=targz)
-        lines.append(targz_line)
+        if self.buildroot_name != self.real_name:
+            targz = self.filename.replace(
+                self.version,
+                '$({name}_VERSION)'.format(name=self.mk_name))
+            targz_line = '{name}_SOURCE = {filename}\n'.format(
+                name=self.mk_name,
+                filename=targz)
+            lines.append(targz_line)
 
         if self.filename not in self.url:
             # Sometimes the filename is in the url, sometimes it's not
@@ -337,7 +508,7 @@ class BuildrootPackage():
 
     def __create_mk_setup(self):
         """
-        Create the line refering to the setup method of the package of the
+        Create the line referring to the setup method of the package of the
         <package_name>.mk file
 
         There are two things you can use to make an installer
@@ -354,73 +525,91 @@ class BuildrootPackage():
         lines.append(setup_type_line)
         return lines
 
+    def __get_license_names(self, license_files):
+        """
+        Try to determine the related license name.
+
+        There are two possibilities. Either the script tries to
+        get license name from package's metadata or, if spdx_lookup
+        package is available, the script compares license files with
+        SPDX database.
+        """
+        license_line = ''
+        if liclookup is None:
+            license_dict = {
+                'Apache Software License': 'Apache-2.0',
+                'BSD License': 'FIXME: please specify the exact BSD version',
+                'European Union Public Licence 1.0': 'EUPL-1.0',
+                'European Union Public Licence 1.1': 'EUPL-1.1',
+                "GNU General Public License": "GPL",
+                "GNU General Public License v2": "GPL-2.0",
+                "GNU General Public License v2 or later": "GPL-2.0+",
+                "GNU General Public License v3": "GPL-3.0",
+                "GNU General Public License v3 or later": "GPL-3.0+",
+                "GNU Lesser General Public License v2": "LGPL-2.1",
+                "GNU Lesser General Public License v2 or later": "LGPL-2.1+",
+                "GNU Lesser General Public License v3": "LGPL-3.0",
+                "GNU Lesser General Public License v3 or later": "LGPL-3.0+",
+                "GNU Library or Lesser General Public License": "LGPL-2.0",
+                "ISC License": "ISC",
+                "MIT License": "MIT",
+                "Mozilla Public License 1.0": "MPL-1.0",
+                "Mozilla Public License 1.1": "MPL-1.1",
+                "Mozilla Public License 2.0": "MPL-2.0",
+                "Zope Public License": "ZPL"
+                }
+            regexp = re.compile(r'^License :* *.* *:+ (.*)( \(.*\))?$')
+            classifiers_licenses = [regexp.sub(r"\1", lic)
+                                    for lic in self.metadata['info']['classifiers']
+                                    if regexp.match(lic)]
+            licenses = [license_dict[x] if x in license_dict else x for x in classifiers_licenses]
+            if not len(licenses):
+                print('WARNING: License has been set to "{license}". It is most'
+                      ' likely wrong, please change it if need be'.format(
+                          license=', '.join(licenses)))
+                licenses = [self.metadata['info']['license']]
+            licenses = set(licenses)
+            license_line = '{name}_LICENSE = {license}\n'.format(
+                name=self.mk_name,
+                license=', '.join(licenses))
+        else:
+            license_names = []
+            for license_file in license_files:
+                with open(license_file) as lic_file:
+                    match = liclookup.match(lic_file.read())
+                if match is not None and match.confidence >= 90.0:
+                    license_names.append(match.license.id)
+                else:
+                    license_names.append("FIXME: license id couldn't be detected")
+            license_names = set(license_names)
+
+            if len(license_names) > 0:
+                license_line = ('{name}_LICENSE ='
+                                ' {names}\n'.format(
+                                    name=self.mk_name,
+                                    names=', '.join(license_names)))
+
+        return license_line
+
     def __create_mk_license(self):
         """
-        Create the lines referring to the package's license informations of the
+        Create the lines referring to the package's license information of the
         <package_name>.mk file
 
-        The license is found using the metadata from pypi.
-        In the metadata, the license can be found either with standard names in
-        the classifiers part or with naming from the packager in the "License"
-        part.
-
-        From the classifiers, the license is "translated" according to
-        buildroot standards if need be (i.e. from Apache Software License to
-        Apache-2.0).
-
-        From the License part, we cannot guess what formatting the packager
-        used. Hence, it is likely to be incorrect. (i.e. Apache License 2.0
-        instead of Apache-2.0).
-
-        The license's files are found by searching the package for files named
-        license or license.txt (case insensitive).
-        If more than one license file is found, the user is asked to select
-        which ones he wants to use.
+        The license's files are found by searching the package (case insensitive)
+        for files named license, license.txt etc. If more than one license file
+        is found, the user is asked to select which ones he wants to use.
         """
-        license_dict = {
-            'Apache Software License': 'Apache-2.0',
-            'BSD License': 'BSD',
-            'European Union Public Licence 1.0': 'EUPL-1.0',
-            'European Union Public Licence 1.1': 'EUPL-1.1',
-            "GNU General Public License": "GPL",
-            "GNU General Public License v2": "GPL-2.0",
-            "GNU General Public License v2 or later": "GPL-2.0+",
-            "GNU General Public License v3": "GPL-3.0",
-            "GNU General Public License v3 or later": "GPL-3.0+",
-            "GNU Lesser General Public License v2": "LGPL-2.1",
-            "GNU Lesser General Public License v2 or later": "LGPL-2.1+",
-            "GNU Lesser General Public License v3": "LGPL-3.0",
-            "GNU Lesser General Public License v3 or later": "LGPL-3.0+",
-            "GNU Library or Lesser General Public License": "LGPL-2.0",
-            "ISC License": "ISC",
-            "MIT License": "MIT",
-            "Mozilla Public License 1.0": "MPL-1.0",
-            "Mozilla Public License 1.1": "MPL-1.1",
-            "Mozilla Public License 2.0": "MPL-2.0",
-            "Zope Public License": "ZPL"
-            }
-        regexp = re.compile('^License :* *.* *:+ (.*)( \(.*\))?$')
-        classifiers_licenses = [regexp.sub(r"\1", lic)
-                                for lic in self.metadata['info']['classifiers']
-                                if regexp.match(lic)]
-        licenses = map(lambda x: license_dict[x] if x in license_dict else x,
-                       classifiers_licenses)
         lines = []
-        if not len(licenses):
-            print('WARNING: License has been set to "{license}". It is most'
-                  ' likely wrong, please change it if need be'.format(
-                      license=', '.join(licenses)))
-            licenses = [self.metadata['info']['license']]
-        license_line = '{name}_LICENSE = {license}\n'.format(
-            name=self.mk_name,
-            license=', '.join(licenses))
-        lines.append(license_line)
 
-        filenames = ['LICENCE', 'LICENSE', 'LICENSE.RST', 'LICENSE.TXT',
-		     'COPYING', 'COPYING.TXT']
-        license_files = list(find_file_upper_case(filenames, self.tmp_extract))
+        filenames = ['LICENCE', 'LICENSE', 'LICENSE.MD', 'LICENSE.RST',
+                     'LICENCE.TXT', 'LICENSE.TXT', 'COPYING', 'COPYING.TXT']
+        self.license_files = list(find_file_upper_case(filenames, self.tmp_extract))
+
+        lines.append(self.__get_license_names(self.license_files))
+
         license_files = [license.replace(self.tmp_extract, '')[1:]
-                         for license in license_files]
+                         for license in self.license_files]
         if len(license_files) > 0:
             if len(license_files) > 1:
                 print('More than one file found for license:',
@@ -482,21 +671,36 @@ class BuildrootPackage():
         path_to_hash = os.path.join(self.pkg_dir, pkg_hash)
         print('Creating {filename}...'.format(filename=path_to_hash))
         lines = []
-        if self.used_url['md5_digest']:
-            md5_comment = '# md5 from {url}, sha256 locally computed\n'.format(
-		url=self.metadata_url)
-            lines.append(md5_comment)
-            hash_line = '{method}\t{digest}  {filename}\n'.format(
+        if self.used_url['digests']['md5'] and self.used_url['digests']['sha256']:
+            hash_header = '# md5, sha256 from {url}\n'.format(
+                url=self.metadata_url)
+            lines.append(hash_header)
+            hash_line = '{method}  {digest}  {filename}\n'.format(
                 method='md5',
-                digest=self.used_url['md5_digest'],
+                digest=self.used_url['digests']['md5'],
                 filename=self.filename)
             lines.append(hash_line)
-        digest = hashlib.sha256(self.as_string).hexdigest()
-        hash_line = '{method}\t{digest}  {filename}\n'.format(
-            method='sha256',
-            digest=digest,
-            filename=self.filename)
-        lines.append(hash_line)
+            hash_line = '{method}  {digest}  {filename}\n'.format(
+                method='sha256',
+                digest=self.used_url['digests']['sha256'],
+                filename=self.filename)
+            lines.append(hash_line)
+
+        if self.license_files:
+            lines.append('# Locally computed sha256 checksums\n')
+        for license_file in self.license_files:
+            sha256 = hashlib.sha256()
+            with open(license_file, 'rb') as lic_f:
+                while True:
+                    data = lic_f.read(BUF_SIZE)
+                    if not data:
+                        break
+                    sha256.update(data)
+            hash_line = '{method}  {digest}  {filename}\n'.format(
+                method='sha256',
+                digest=sha256.hexdigest(),
+                filename=license_file.replace(self.tmp_extract, '')[1:])
+            lines.append(hash_line)
 
         with open(path_to_hash, 'w') as hash_file:
             hash_file.writelines(lines)
@@ -515,6 +719,7 @@ class BuildrootPackage():
         bool_line = '\tbool "{name}"\n'.format(name=self.buildroot_name)
         lines.append(bool_line)
         if self.pkg_req:
+            self.pkg_req.sort()
             for dep in self.pkg_req:
                 dep_line = '\tselect BR2_PACKAGE_{req} # runtime\n'.format(
                     req=dep.upper().replace('-', '_'))
@@ -522,7 +727,8 @@ class BuildrootPackage():
 
         lines.append('\thelp\n')
 
-        help_lines = textwrap.wrap(self.metadata['info']['summary'],
+        md_info = self.metadata['info']
+        help_lines = textwrap.wrap(md_info['summary'], 62,
                                    initial_indent='\t  ',
                                    subsequent_indent='\t  ')
 
@@ -530,11 +736,19 @@ class BuildrootPackage():
         if help_lines[-1][-1] != '.':
             help_lines[-1] += '.'
 
-        # \t + two spaces is 3 char long
-        help_lines.append('')
-        help_lines.append('\t  ' + self.metadata['info']['home_page'])
-        help_lines = map(lambda x: x + '\n', help_lines)
-        lines += help_lines
+        home_page = md_info.get('home_page', None)
+
+        if not home_page:
+            project_urls = md_info.get('project_urls', None)
+            if project_urls:
+                home_page = project_urls.get('Homepage', None)
+
+        if home_page:
+            # \t + two spaces is 3 char long
+            help_lines.append('')
+            help_lines.append('\t  ' + home_page)
+            help_lines = [x + '\n' for x in help_lines]
+            lines += help_lines
 
         with open(path_to_config, 'w') as config_file:
             config_file.writelines(lines)
@@ -574,17 +788,12 @@ def main():
             print('Fetching package', package.real_name)
             try:
                 package.fetch_package_info()
-            except (urllib2.URLError, urllib2.HTTPError):
-                continue
-            if package.metadata_name.lower() == 'setuptools':
-                # setuptools imports itself, that does not work very well
-                # with the monkey path at the begining
-                print('Error: setuptools cannot be built using scanPyPI')
+            except (urllib.error.URLError, urllib.error.HTTPError):
                 continue
 
             try:
                 package.download_package()
-            except urllib2.HTTPError as error:
+            except urllib.error.HTTPError as error:
                 print('Error: {code} {reason}'.format(code=error.code,
                                                       reason=error.reason))
                 print('Error downloading package :', package.buildroot_name)
@@ -600,17 +809,18 @@ def main():
                 continue
 
             # Loading the package install info from the package
+            package.load_pyproject()
             try:
-                package.load_setup()
+                package.load_metadata()
             except ImportError as err:
-                if 'buildutils' in err.message:
+                if 'buildutils' in str(err):
                     print('This package needs buildutils')
+                    continue
                 else:
                     raise
-                continue
-            except AttributeError:
-                print('Error: Could not install package {pkg}'.format(
-                    pkg=package.real_name))
+            except (AttributeError, KeyError) as error:
+                print('Error: Could not install package {pkg}: {error}'.format(
+                    pkg=package.real_name, error=error))
                 continue
 
             # Package requirement are an argument of the setup function
@@ -632,7 +842,7 @@ def main():
                     continue
                 print('Error: Package {name} already exists'
                       .format(name=package.pkg_dir))
-                del_pkg = raw_input(
+                del_pkg = input(
                     'Do you want to delete existing package ? [y/N]')
                 if del_pkg.lower() == 'y':
                     shutil.rmtree(package.pkg_dir)
@@ -644,10 +854,13 @@ def main():
             package.create_hash_file()
 
             package.create_config_in()
+            print("NOTE: Remember to also make an update to the DEVELOPERS file")
+            print("      and include an entry for the pkg in packages/Config.in")
             print()
-            # printing an empty line for visual confort
+            # printing an empty line for visual comfort
     finally:
         shutil.rmtree(tmp_path)
+
 
 if __name__ == "__main__":
     main()

@@ -1,2 +1,5 @@
+# Upstream sha256 from GitHub
+sha256  24da2782297dad2727c7b467ce232837f3e71a8a42d15e0bd029495da83abc3e  mrouted-4.7.tar.gz
+
 # Locally calculated
-sha256 181908f7025c5a2dee2e50d86888780469eaa9e1bd42d3eca9dfed8274aecd3d  mrouted-3.9.7.tar.gz
+sha256  834f45ed282fd010f354ecc0a50538af519a1cfcc4d2866de3be06982fa9ed29  LICENSE

@@ -1,3 +1,6 @@
-# retrieved by scancpan from http://cpan.metacpan.org/
-md5    b1d91153ac971347aee84292ed886c1c TimeDate-2.30.tar.gz
-sha256 75bd254871cb5853a6aa0403ac0be270cdd75c9d1b6639f18ecba63c15298e86 TimeDate-2.30.tar.gz
+# retrieved by scancpan from https://cpan.metacpan.org/
+md5  a06d7f6ec7b24581f0564f0f70da1a86  TimeDate-2.35.tar.gz
+sha256  baddd0306ae2e86e9ec28d3de5439e514643e80b3735e43bd0fbb426d73304de  TimeDate-2.35.tar.gz
+
+# computed by scancpan
+sha256  76f019211fce0b5cb773d602f9a9be9a6f8534991f251cee760a65ace1c97408  LICENSE

@@ -1,2 +1,4 @@
-# From http://archive.apache.org/dist/apr/apr-util-1.5.4.tar.gz.sha1
-sha1	72cc3ac693b52fb831063d5c0de18723bc8e0095	apr-util-1.5.4.tar.gz
+# From https://archive.apache.org/dist/apr/apr-util-1.6.5.tar.bz2.sha256
+sha256  96de1dd6f6a0476d2d2e7964926d8c1ddc3bb0e210e1b1812d3ba5a454a392e2  apr-util-1.6.5.tar.bz2
+# Locally calculated
+sha256  ef5609d18601645ad6fe22c6c122094be40e976725c1d0490778abacc836e7a2  LICENSE

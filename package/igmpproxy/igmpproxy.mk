@@ -4,10 +4,16 @@
 #
 ################################################################################
 
-IGMPPROXY_VERSION = f47644d8fa7266a784f3ec7b251e7d318bc2f0a9
-IGMPPROXY_SITE = $(call github,pali,igmpproxy,$(IGMPPROXY_VERSION))
+IGMPPROXY_VERSION = 0.4
+IGMPPROXY_SITE = \
+	https://github.com/pali/igmpproxy/releases/download/$(IGMPPROXY_VERSION)
 IGMPPROXY_AUTORECONF = YES
-IGMPPROXY_LICENSE = GPL-2.0+
-IGMPPROXY_LICENSE_FILES = COPYING
+IGMPPROXY_LICENSE = GPL-2.0+, BSD-3-Clause (mrouted)
+IGMPPROXY_LICENSE_FILES = COPYING GPL.txt Stanford.txt
+
+IGMPPROXY_CPE_ID_VENDOR = pali
+
+# 0001-Fix-Buffer-Overflow.patch
+IGMPPROXY_IGNORE_CVES += CVE-2025-50681
 
 $(eval $(autotools-package))

@@ -32,10 +32,10 @@ REBAR_TARGET_DEPS_DIR = $(STAGING_DIR)/usr/share/rebar/deps
 #
 REBAR_HOST_DEPS_ENV = \
 	ERL_COMPILER_OPTIONS='{i, "$(REBAR_HOST_DEPS_DIR)"}' \
-	ERL_EI_LIBDIR=$(HOST_DIR)/lib/erlang/lib/erl_interface-$(ERLANG_EI_VSN)/lib
+	ERL_EI_LIBDIR=$(HOST_DIR)/lib/erlang/lib/erl_interface-$(call erlang_ei_vsn,$(HOST_DIR))/lib
 REBAR_TARGET_DEPS_ENV = \
 	ERL_COMPILER_OPTIONS='{i, "$(REBAR_TARGET_DEPS_DIR)"}' \
-	ERL_EI_LIBDIR=$(STAGING_DIR)/usr/lib/erlang/lib/erl_interface-$(ERLANG_EI_VSN)/lib
+	ERL_EI_LIBDIR=$(STAGING_DIR)/usr/lib/erlang/lib/erl_interface-$(call erlang_ei_vsn,$(STAGING_DIR)/usr)/lib
 
 ################################################################################
 # Helper functions
@@ -93,6 +93,13 @@ define install-rebar-deps
 	ln -f -s $(1)/$($(PKG)_ERLANG_LIBDIR) \
 		$(REBAR_$(2)_DEPS_DIR)/$($(PKG)_ERLANG_APP)
 endef
+
+# Remove the "deps" statement from a rebar.config file
+define remove-rebar-config-dependencies
+	$(SED) '/^{deps.*}\.$$/d' -e '/^{deps/,/}\.$$/d' \
+		$($(PKG)_DIR)/rebar.config
+endef
+
 
 ################################################################################
 # inner-rebar-package -- defines how the configuration, compilation
@@ -225,6 +232,14 @@ $(2)_REBAR = ./rebar
 else
 $(2)_REBAR = rebar
 $(2)_DEPENDENCIES += host-erlang-rebar
+endif
+
+$(2)_KEEP_DEPENDENCIES ?= NO
+
+# Remove dependencies listed in rebar.config unless the package says
+# otherwise
+ifeq ($$($(2)_KEEP_DEPENDENCIES),NO)
+$(2)_POST_PATCH_HOOKS += remove-rebar-config-dependencies
 endif
 
 # The package sub-infra to use

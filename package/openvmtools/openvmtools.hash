@@ -1,2 +1,4 @@
+# From https://github.com/vmware/open-vm-tools/releases/tag/stable-13.1.0
+sha256  67a23d505aca77127b081445f758e269b1009e8824cf7f6f2d6efafb0b14d0fd  open-vm-tools-13.1.0-25218885.tar.gz
 # locally computed
-sha256  ff384ab0c11e19db0fd6ddab60e8ae48a4591b141fb3a8e8f1d4e1a489dd293f  openvmtools-5a9033ddfa95786d867e4d02bbb9a29bac8fb64f.tar.gz
+sha256  f734933bd7d49aef25aaf897ed7281ee822e8635056e69b895a7d2e668937fc5  COPYING

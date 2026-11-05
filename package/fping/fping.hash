@@ -1,2 +1,5 @@
 # Locally calculated
-sha256 67eb4152b98ad34f99d2eec4e1098a0bb52caf13c0c89cd147349d08190fe8ce  fping-4.0.tar.gz
+sha256  be320771f075e47dd7e5704b485e9bdc7dd11107884345c0f7c18749357f668d  fping-5.4.tar.gz
+
+# Hash for license file
+sha256  6051b27e4b4a648f7bc8b329024da53a6e95ce88fcf0ccc259c371a74b741757  COPYING

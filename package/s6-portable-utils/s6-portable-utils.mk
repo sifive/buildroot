@@ -4,19 +4,19 @@
 #
 ################################################################################
 
-S6_PORTABLE_UTILS_VERSION = 2.2.1.1
-S6_PORTABLE_UTILS_SITE = http://skarnet.org/software/s6-portable-utils
+S6_PORTABLE_UTILS_VERSION = 2.3.0.4
+S6_PORTABLE_UTILS_SITE = https://skarnet.org/software/s6-portable-utils
 S6_PORTABLE_UTILS_LICENSE = ISC
 S6_PORTABLE_UTILS_LICENSE_FILES = COPYING
 S6_PORTABLE_UTILS_DEPENDENCIES = skalibs
 
 S6_PORTABLE_UTILS_CONF_OPTS = \
-	--prefix=/usr \
 	--with-sysdeps=$(STAGING_DIR)/usr/lib/skalibs/sysdeps \
-	--with-include=$(STAGING_DIR)/usr/include \
-	--with-dynlib=$(STAGING_DIR)/usr/lib \
-	--with-lib=$(STAGING_DIR)/usr/lib/skalibs \
+	--with-include=$(STAGING_DIR)/include \
+	--with-dynlib=$(STAGING_DIR)/lib \
+	--with-lib=$(STAGING_DIR)/lib/skalibs \
 	$(if $(BR2_STATIC_LIBS),,--disable-allstatic) \
+	$(if $(BR2_PACKAGE_S6_PORTABLE_UTILS_MULTICALL),--enable-multicall,) \
 	$(SHARED_STATIC_LIBS_OPTS)
 
 define S6_PORTABLE_UTILS_CONFIGURE_CMDS

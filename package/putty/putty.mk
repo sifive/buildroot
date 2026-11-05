@@ -4,19 +4,20 @@
 #
 ################################################################################
 
-PUTTY_VERSION = 0.70
-PUTTY_SITE = http://the.earth.li/~sgtatham/putty/$(PUTTY_VERSION)
-PUTTY_SUBDIR = unix
+PUTTY_VERSION = 0.85
+PUTTY_SITE = https://the.earth.li/~sgtatham/putty/$(PUTTY_VERSION)
 PUTTY_LICENSE = MIT
 PUTTY_LICENSE_FILES = LICENCE
-PUTTY_CONF_OPTS = --disable-gtktest
-PUTTY_CONF_ENV = CFLAGS="$(TARGET_CFLAGS) -Wno-error"
+PUTTY_CPE_ID_VENDOR = putty
+PUTTY_DEPENDENCIES = host-pkgconf
+PUTTY_CONF_OPTS = -DPUTTY_GSSAPI=OFF
 
-ifeq ($(BR2_PACKAGE_LIBGTK2),y)
-PUTTY_CONF_OPTS += --with-gtk=2
-PUTTY_DEPENDENCIES += libgtk2
-else
-PUTTY_CONF_OPTS += --without-gtk
+ifeq ($(BR2_PACKAGE_LIBGTK3),y)
+PUTTY_DEPENDENCIES += libgtk3
 endif
 
-$(eval $(autotools-package))
+ifeq ($(BR2_STATIC_LIBS),y)
+PUTTY_CONF_OPTS += -DCMAKE_C_FLAGS="$(TARGET_CFLAGS) -DNO_LIBDL"
+endif
+
+$(eval $(cmake-package))

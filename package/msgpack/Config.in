@@ -5,8 +5,11 @@ config BR2_PACKAGE_MSGPACK
 	help
 	  MessagePack is an efficient binary serialization format.
 
-	  It lets you exchange data among multiple languages like JSON but
-	  it's faster and smaller.
+	  It lets you exchange data among multiple languages like JSON
+	  but it's faster and smaller.
+
+	  Note: this package is the C++ variant of msgpack. For the
+	  C variant, use the "msgpack-c" Buildroot package.
 
 	  http://msgpack.org/
 

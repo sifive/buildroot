@@ -1,2 +1,9 @@
-# From http://www.netfilter.org/projects/nftables/downloads.html#nftables-0.7
-sha1	c003fa8b63b1b44c52de345a4d84487d81865a98	nftables-0.7.tar.bz2
+# From https://netfilter.org/projects/nftables/downloads.html
+# Checked pgp signature:
+# https://netfilter.org/projects/nftables/files/nftables-1.1.7.tar.xz.sig
+# with key:
+# https://netfilter.org/files/coreteam-gpg-key-0xD70D1A666ACF2B21.txt
+# https://www.netfilter.org/projects/nftables/files/nftables-1.1.7.tar.xz.sha256sum
+sha256  a6fbf060d8d4fff001517a2b94f356bb4366bfbf0ba366366f9d27cc38caa58f  nftables-1.1.7.tar.xz
+# Locally computed:
+sha256  4ee1e51baf5f3166712fa0c3e01338c7257e50ddef245d28bb14ad68f6070ba5  COPYING

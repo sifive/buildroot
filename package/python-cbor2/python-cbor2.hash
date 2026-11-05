@@ -1,0 +1,4 @@
+# Locally calculated after vendoring
+sha256  7b1ae9426ff8a39baa881e9eb54211568f24aa205c861d8ba7e5e93c0c058047  python-cbor2-6.2.0.post2-cargo6.tar.gz
+# Locally computed sha256 checksums
+sha256  a6afd126d8f545a15166a22f25fadff4b9fb4978bbdd17e97d97d950b66d2fef  LICENSE.txt

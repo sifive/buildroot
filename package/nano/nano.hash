@@ -1,2 +1,5 @@
 # Locally calculated after checking pgp signature
-sha256 fbe31746958698d73c6726ee48ad8b0612697157961a2e9aaa83b4aa53d1165a  nano-2.8.7.tar.xz
+# https://www.nano-editor.org/dist/v9/nano-9.0.tar.xz.asc
+# using key 168E6F4297BFD7A79AFD4496514BBE2EB8E1961F
+sha256  05ecb99247b782e8a5b3a25ed4101dd034b0236902f7449bc9795b717642f7e9  nano-9.2.tar.xz
+sha256  fc82ca8b6fdb18d4e3e85cfd8ab58d1bcd3f1b29abe782895abd91d64763f8e7  COPYING

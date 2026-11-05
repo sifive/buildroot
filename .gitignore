@@ -1,4 +1,4 @@
-/output
+/output*
 /dl
 /.auto.deps
 /.config.cmd
@@ -13,3 +13,4 @@
 *.rej
 *~
 *.pyc
+/br.log

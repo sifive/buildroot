@@ -4,11 +4,14 @@
 #
 ################################################################################
 
-WHOIS_VERSION = 5.2.17
-WHOIS_SITE = http://snapshot.debian.org/archive/debian/20170727T214450Z/pool/main/w/whois
+WHOIS_VERSION = 5.6.5
+WHOIS_SITE = https://snapshot.debian.org/archive/debian/20251116T144052Z/pool/main/w/whois
 WHOIS_SOURCE = whois_$(WHOIS_VERSION).tar.xz
-# take precedence over busybox implementation
-WHOIS_DEPENDENCIES = $(if $(BR2_PACKAGE_BUSYBOX),busybox) $(TARGET_NLS_DEPENDENCIES)
+WHOIS_DEPENDENCIES = \
+	host-pkgconf \
+	$(if $(BR2_PACKAGE_LIBIDN2),libidn2) \
+	$(if $(BR2_PACKAGE_LIBXCRYPT),libxcrypt) \
+	$(TARGET_NLS_DEPENDENCIES)
 WHOIS_MAKE_ENV = $(TARGET_MAKE_ENV)
 WHOIS_MAKE_OPTS = CC="$(TARGET_CC)" CFLAGS="$(TARGET_CFLAGS)" \
 	LIBS="$(WHOIS_EXTRA_LIBS)"
@@ -20,11 +23,6 @@ ifeq ($(BR2_PACKAGE_LIBICONV),y)
 WHOIS_DEPENDENCIES += libiconv
 WHOIS_EXTRA_LIBS += -liconv
 WHOIS_MAKE_ENV += HAVE_ICONV=1
-endif
-
-ifeq ($(BR2_PACKAGE_LIBIDN),y)
-WHOIS_DEPENDENCIES += libidn
-WHOIS_MAKE_ENV += HAVE_LIBIDN=1
 endif
 
 ifeq ($(BR2_SYSTEM_ENABLE_NLS),y)

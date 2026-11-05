@@ -4,22 +4,11 @@
 #
 ################################################################################
 
-SHAPELIB_VERSION = 1.3.0
+SHAPELIB_VERSION = 1.6.3
 SHAPELIB_SITE = http://download.osgeo.org/shapelib
 SHAPELIB_LICENSE = MIT or LGPL-2.0
-SHAPELIB_LICENSE_FILES = web/license.html LICENSE.LGPL
+SHAPELIB_LICENSE_FILES = LICENSE-LGPL LICENSE-MIT web/license.html
+SHAPELIB_CPE_ID_VENDOR = osgeo
 SHAPELIB_INSTALL_STAGING = YES
 
-define SHAPELIB_BUILD_CMDS
-	$(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D)
-endef
-
-define SHAPELIB_INSTALL_STAGING_CMDS
-	$(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D) PREFIX=$(STAGING_DIR)/usr/ lib_install
-endef
-
-define SHAPELIB_INSTALL_TARGET_CMDS
-	$(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D) PREFIX=$(TARGET_DIR)/usr/ bin_install
-endef
-
-$(eval $(generic-package))
+$(eval $(autotools-package))

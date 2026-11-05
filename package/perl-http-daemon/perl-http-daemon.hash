@@ -1,3 +1,6 @@
-# retrieved by scancpan from http://cpan.metacpan.org/
-md5    ed0ae02d25d7f1e89456d4d69732adc2 HTTP-Daemon-6.01.tar.gz
-sha256 43fd867742701a3f9fcc7bd59838ab72c6490c0ebaf66901068ec6997514adc2 HTTP-Daemon-6.01.tar.gz
+# retrieved by scancpan from https://cpan.metacpan.org/
+md5  14f98fd61159ec4740a21781b787944e  HTTP-Daemon-6.17.tar.gz
+sha256  16281580c40e23108d028434698b5d7d53637bf904c9df822481e253cbec920c  HTTP-Daemon-6.17.tar.gz
+
+# computed by scancpan
+sha256  994ab45a4f8ef43f47b7baabc48d100838c42d226d8d161d6ac1f49c5f9d7c84  LICENCE

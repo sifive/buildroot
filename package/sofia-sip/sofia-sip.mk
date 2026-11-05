@@ -4,30 +4,25 @@
 #
 ################################################################################
 
-SOFIA_SIP_VERSION = 1.12.11
-SOFIA_SIP_SITE = http://downloads.sourceforge.net/project/sofia-sip/sofia-sip/$(SOFIA_SIP_VERSION)
+SOFIA_SIP_VERSION = 1.13.19
+SOFIA_SIP_SITE = $(call github,freeswitch,sofia-sip,v$(SOFIA_SIP_VERSION))
 SOFIA_SIP_INSTALL_STAGING = YES
-SOFIA_SIP_DEPENDENCIES = host-pkgconf
+# Fetched from github, no pre-generated configure script provided
+SOFIA_SIP_AUTORECONF = YES
+SOFIA_SIP_DEPENDENCIES = host-pkgconf openssl
 SOFIA_SIP_LICENSE = LGPL-2.1+
 SOFIA_SIP_LICENSE_FILES = COPYING COPYRIGHTS
-SOFIA_SIP_CONF_OPTS = --with-doxygen=no
+SOFIA_SIP_CPE_ID_VENDOR = signalwire
+SOFIA_SIP_CONF_OPTS = \
+	--with-doxygen=no \
+	--enable-nth \
+	--with-openssl=pkg-config
 
 ifeq ($(BR2_PACKAGE_LIBGLIB2),y)
 SOFIA_SIP_CONF_OPTS += --with-glib
 SOFIA_SIP_DEPENDENCIES += libglib2
 else
 SOFIA_SIP_CONF_OPTS += --without-glib
-endif
-
-ifeq ($(BR2_PACKAGE_OPENSSL),y)
-SOFIA_SIP_CONF_OPTS += --with-openssl
-SOFIA_SIP_DEPENDENCIES += openssl
-else
-SOFIA_SIP_CONF_OPTS += --without-openssl
-endif
-
-ifeq ($(BR2_ENABLE_DEBUG),y)
-SOFIA_SIP_CONF_OPTS += --enable-ndebug
 endif
 
 $(eval $(autotools-package))

@@ -1,5 +1,8 @@
-# From https://sourceforge.net/projects/freetype/files/freetype2/2.8/
-md5 2413ac3eaf508ada019c63959ea81a92  freetype-2.8.tar.bz2
-sha1 42c6b1f733fe13a3eba135f5025b22cb68450f91  freetype-2.8.tar.bz2
-# Locally calculated after checking pgp signature
-sha256 a3c603ed84c3c2495f9c9331fe6bba3bb0ee65e06ec331e0a0fb52158291b40b  freetype-2.8.tar.bz2
+# From https://sourceforge.net/projects/freetype/files/freetype2/2.14.3/
+sha1  62e26b89a057ad4f1e28af977945d5c1975a8e67  freetype-2.14.3.tar.xz
+sha256  36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f  freetype-2.14.3.tar.xz
+
+# Locally calculated
+sha256  bd36c8b474855fa294c2ec5c184544478ef3720aad37d65a6296a4f264fd2d3b  LICENSE.TXT
+sha256  5a5ee54c5001bbad1cdc1a57cc3dd4c42199b2da09d39c7ee41fab002d02967f  docs/FTL.TXT
+sha256  c4120c6752c910c299e3bd9cb3a46ff262c268303ca2069b61f92f10a5656c18  docs/GPLv2.TXT

@@ -1,2 +1,4 @@
 # locally computed hash
-sha256 0b979b778bcf711a2b8702b1831affd7dac4a776235d7877fd185651b6a390a3  acpica-unix2-20170531.tar.gz
+sha256  aa18901b92e30749be0edc3081c8d550c61fce4fa37546fc6a65d367a4ae71a5  acpica-unix-20260930.tar.gz
+sha256  dcf670273dd9dc86a59d0f493d26034ac58a20860658fe3f8f49ddf687b01ba2  LICENSE.BSD-3-Clause
+sha256  edaef632cbb643e4e7a221717a6c441a4c1a7c918e6e4d56debc3d8739b233f6  LICENSE.GPL-2.0-only

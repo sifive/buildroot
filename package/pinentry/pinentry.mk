@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PINENTRY_VERSION = 1.0.0
+PINENTRY_VERSION = 1.3.2
 PINENTRY_SOURCE = pinentry-$(PINENTRY_VERSION).tar.bz2
 PINENTRY_SITE = https://www.gnupg.org/ftp/gcrypt/pinentry
 PINENTRY_LICENSE = GPL-2.0+
@@ -13,16 +13,19 @@ PINENTRY_DEPENDENCIES = \
 	libassuan libgpg-error \
 	$(if $(BR2_PACKAGE_LIBICONV),libiconv) \
 	host-pkgconf
+# --disable-libcap to avoid PAM dependency
 PINENTRY_CONF_OPTS += \
 	--with-libassuan-prefix=$(STAGING_DIR)/usr \
 	--with-libgpg-error-prefix=$(STAGING_DIR)/usr \
-	--without-libcap       # requires PAM
+	--without-libcap \
+	--disable-pinentry-gtk2
 
-# build with X if available
-ifeq ($(BR2_PACKAGE_XORG7),y)
-PINENTRY_CONF_OPTS += --with-x
-else
-PINENTRY_CONF_OPTS += --without-x
+# Force the path to "gpgrt-config" (from the libgpg-error package) to
+# avoid using the one on host, if present.
+PINENTRY_CONF_ENV += GPGRT_CONFIG=$(STAGING_DIR)/usr/bin/gpgrt-config
+
+ifeq ($(BR2_TOOLCHAIN_HAS_LIBATOMIC),y)
+PINENTRY_CONF_ENV += LIBS=-latomic
 endif
 
 ifeq ($(BR2_PACKAGE_LIBSECRET),y)
@@ -30,6 +33,23 @@ PINENTRY_CONF_OPTS += --enable-libsecret
 PINENTRY_DEPENDENCIES += libsecret
 else
 PINENTRY_CONF_OPTS += --disable-libsecret
+endif
+
+# pinentry-efl backend
+ifeq ($(BR2_PACKAGE_PINENTRY_EFL),y)
+PINENTRY_CONF_OPTS += --enable-pinentry-efl
+PINENTRY_DEPENDENCIES += efl
+else
+PINENTRY_CONF_OPTS += --disable-pinentry-efl
+endif
+
+# pinentry-fltk backend
+ifeq ($(BR2_PACKAGE_PINENTRY_FLTK),y)
+PINENTRY_CONF_ENV += ac_cv_path_FLTK_CONFIG=$(STAGING_DIR)/usr/bin/fltk-config
+PINENTRY_CONF_OPTS += --enable-pinentry-fltk
+PINENTRY_DEPENDENCIES += fltk
+else
+PINENTRY_CONF_OPTS += --disable-pinentry-fltk
 endif
 
 # pinentry-ncurses backend
@@ -40,25 +60,12 @@ else
 PINENTRY_CONF_OPTS += --disable-ncurses
 endif
 
-# pinentry-gtk2 backend
-ifeq ($(BR2_PACKAGE_PINENTRY_GTK2),y)
-PINENTRY_CONF_OPTS += --enable-pinentry-gtk2
-PINENTRY_DEPENDENCIES += libgtk2
+# pinentry-qt5 backend
+ifeq ($(BR2_PACKAGE_PINENTRY_QT5),y)
+PINENTRY_CONF_OPTS += --enable-pinentry-qt5
+PINENTRY_DEPENDENCIES += qt5base
 else
-PINENTRY_CONF_OPTS += --disable-pinentry-gtk2
-endif
-
-# pinentry-qt4/5 backend
-ifeq ($(BR2_PACKAGE_PINENTRY_QT4)$(BR2_PACKAGE_PINENTRY_QT5),y)
-ifeq ($(BR2_PACKAGE_PINENTRY_QT4),y)
-# -pthread needs to be passed for certain toolchains
-# http://autobuild.buildroot.net/results/6be/6be109ccedec603a67cebdb31b55865dcce0e128/
-PINENTRY_CONF_OPTS += LIBS=-pthread MOC=$(HOST_DIR)/bin/moc
-endif
-PINENTRY_CONF_OPTS += --enable-pinentry-qt
-PINENTRY_DEPENDENCIES += $(if $(BR2_PACKAGE_PINENTRY_QT4),qt,qt5base)
-else
-PINENTRY_CONF_OPTS += --disable-pinentry-qt
+PINENTRY_CONF_OPTS += --disable-pinentry-qt5
 endif
 
 $(eval $(autotools-package))

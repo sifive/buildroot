@@ -4,11 +4,20 @@
 #
 ################################################################################
 
-PKGCONF_VERSION = 0.9.12
-PKGCONF_SITE = https://github.com/pkgconf/pkgconf/releases/download/pkgconf-$(PKGCONF_VERSION)
-PKGCONF_SOURCE = pkgconf-$(PKGCONF_VERSION).tar.bz2
+PKGCONF_VERSION = 2.3.0
+PKGCONF_SITE = https://distfiles.ariadne.space/pkgconf
+PKGCONF_SOURCE = pkgconf-$(PKGCONF_VERSION).tar.xz
 PKGCONF_LICENSE = pkgconf license
 PKGCONF_LICENSE_FILES = COPYING
+PKGCONF_CPE_ID_VENDOR = pkgconf
+
+# The package is a dependency to ccache so ccache cannot be a dependency
+HOST_PKGCONF_ADD_CCACHE_DEPENDENCY = NO
+
+# We are a ccache dependency, so we can't use ccache
+HOST_PKGCONF_CONF_ENV = \
+	CC="$(HOSTCC_NOCCACHE)" \
+	CXX="$(HOSTCXX_NOCCACHE)"
 
 PKG_CONFIG_HOST_BINARY = $(HOST_DIR)/bin/pkg-config
 
@@ -19,8 +28,7 @@ endef
 define HOST_PKGCONF_INSTALL_WRAPPER
 	$(INSTALL) -m 0755 -D package/pkgconf/pkg-config.in \
 		$(HOST_DIR)/bin/pkg-config
-	$(SED) 's,@PKG_CONFIG_LIBDIR@,$(STAGING_DIR)/usr/lib/pkgconfig:$(STAGING_DIR)/usr/share/pkgconfig,' \
-		-e 's,@STAGING_DIR@,$(STAGING_DIR),' \
+	$(SED) 's,@STAGING_SUBDIR@,$(STAGING_SUBDIR),g' \
 		$(HOST_DIR)/bin/pkg-config
 endef
 

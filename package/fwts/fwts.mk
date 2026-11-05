@@ -4,13 +4,20 @@
 #
 ################################################################################
 
-FWTS_VERSION = V16.11.00
-FWTS_SITE = http://fwts.ubuntu.com/release
-FWTS_STRIP_COMPONENTS = 0
+FWTS_VERSION = 26.09.00
+FWTS_SOURCE = fwts-V$(FWTS_VERSION).tar.gz
+FWTS_SITE = https://github.com/fwts/fwts/releases/download/V$(FWTS_VERSION)
 FWTS_LICENSE = GPL-2.0, LGPL-2.1, Custom
 FWTS_LICENSE_FILES = debian/copyright
+# No configure in tarball
 FWTS_AUTORECONF = YES
-FWTS_DEPENDENCIES = host-bison host-flex host-pkgconf json-c libglib2 \
+FWTS_CONF_OPTS = --disable-werror
+FWTS_DEPENDENCIES = host-bison host-flex host-pkgconf libglib2 libbsd \
+	$(if $(BR2_PACKAGE_BASH_COMPLETION),bash-completion) \
 	$(if $(BR2_PACKAGE_DTC),dtc)
+
+ifeq ($(BR2_OPTIMIZE_0),y)
+FWTS_CONF_ENV = CFLAGS="$(TARGET_CFLAGS) -O1"
+endif
 
 $(eval $(autotools-package))

@@ -1,2 +1,4 @@
-# Locally calculated after checking pgp signature
-sha256	ecfa62a7fa3c4c18b9eccd8c16eaddee4bd308a76ea50b5c02a5840f09c0a1c2	rsync-3.1.2.tar.gz
+# From https://github.com/RsyncProject/rsync/releases/tag/v3.5.2
+sha256  a10d591825251e070f74c98df3daad195def4ed81b4a2de16169026aea33f6c8  rsync-3.5.2.tar.gz
+# Locally calculated
+sha256  85c19ea50a224c2d0067a69c083584e5717b40b76610ec1218f91385775067dd  COPYING

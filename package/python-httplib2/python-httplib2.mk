@@ -4,11 +4,15 @@
 #
 ################################################################################
 
-PYTHON_HTTPLIB2_VERSION = 0.10.3
+PYTHON_HTTPLIB2_VERSION = 0.32.1
 PYTHON_HTTPLIB2_SOURCE = httplib2-$(PYTHON_HTTPLIB2_VERSION).tar.gz
-PYTHON_HTTPLIB2_SITE = https://pypi.python.org/packages/e4/2e/a7e27d2c36076efeb8c0e519758968b20389adf57a9ce3af139891af2696
+PYTHON_HTTPLIB2_SITE = https://files.pythonhosted.org/packages/93/da/affa4b2adc11468c7d88d9b4258cac432479046edcf212284b55d4528593
 PYTHON_HTTPLIB2_SETUP_TYPE = setuptools
 PYTHON_HTTPLIB2_LICENSE = MIT
-PYTHON_HTTPLIB2_LICENSE_FILES = PKG-INFO
+PYTHON_HTTPLIB2_LICENSE_FILES = LICENSE
+PYTHON_HTTPLIB2_CPE_ID_VENDOR = httplib2_project
+PYTHON_HTTPLIB2_CPE_ID_PRODUCT = httplib2
+HOST_PYTHON_HTTPLIB2_DEPENDENCIES = host-python-pyparsing
 
 $(eval $(python-package))
+$(eval $(host-python-package))

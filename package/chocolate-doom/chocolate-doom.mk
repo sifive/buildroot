@@ -4,22 +4,40 @@
 #
 ################################################################################
 
-CHOCOLATE_DOOM_VERSION = 2.3.0
-CHOCOLATE_DOOM_SITE = http://www.chocolate-doom.org/downloads/$(CHOCOLATE_DOOM_VERSION)
+CHOCOLATE_DOOM_VERSION = 3.1.1
+CHOCOLATE_DOOM_SITE = $(call github,chocolate-doom,chocolate-doom,chocolate-doom-$(CHOCOLATE_DOOM_VERSION))
 CHOCOLATE_DOOM_LICENSE = GPL-2.0+
-CHOCOLATE_DOOM_LICENSE_FILES = COPYING
-CHOCOLATE_DOOM_DEPENDENCIES = host-pkgconf sdl sdl_mixer sdl_net
-
-# We're patching configure.ac, so we need to autoreconf
+CHOCOLATE_DOOM_LICENSE_FILES = COPYING.md
+CHOCOLATE_DOOM_CPE_ID_VENDOR = chocolate-doom
+CHOCOLATE_DOOM_CPE_ID_PRODUCT = chocolate_doom
+CHOCOLATE_DOOM_DEPENDENCIES = host-pkgconf sdl2
+# Fetch from git
 CHOCOLATE_DOOM_AUTORECONF = YES
 
 # Avoid installing desktop entries, icons, etc.
 CHOCOLATE_DOOM_INSTALL_TARGET_OPTS = DESTDIR=$(TARGET_DIR) install-exec
 
-CHOCOLATE_DOOM_CONF_OPTS = \
-	--disable-sdltest \
-	--with-sdl-prefix=$(STAGING_DIR)/usr \
-	--with-sdl-exec-prefix=$(STAGING_DIR)/usr
+CHOCOLATE_DOOM_CFLAGS = $(TARGET_CFLAGS)
+
+ifeq ($(BR2_TOOLCHAIN_HAS_GCC_BUG_85180),y)
+CHOCOLATE_DOOM_CFLAGS += -O0
+endif
+
+CHOCOLATE_DOOM_CONF_ENV += CFLAGS="$(CHOCOLATE_DOOM_CFLAGS)"
+
+ifeq ($(BR2_PACKAGE_SDL2_MIXER),y)
+CHOCOLATE_DOOM_DEPENDENCIES += sdl2_mixer
+CHOCOLATE_DOOM_CONF_OPTS += --enable-sdl2mixer
+else
+CHOCOLATE_DOOM_CONF_OPTS += --disable-sdl2mixer
+endif
+
+ifeq ($(BR2_PACKAGE_SDL2_NET),y)
+CHOCOLATE_DOOM_DEPENDENCIES += sdl2_net
+CHOCOLATE_DOOM_CONF_OPTS += --enable-sdl2net
+else
+CHOCOLATE_DOOM_CONF_OPTS += --disable-sdl2net
+endif
 
 ifeq ($(BR2_PACKAGE_LIBPNG),y)
 CHOCOLATE_DOOM_DEPENDENCIES += libpng

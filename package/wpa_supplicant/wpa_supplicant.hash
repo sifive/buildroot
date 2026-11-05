@@ -1,2 +1,3 @@
 # Locally calculated
-sha256  b4936d34c4e6cdd44954beba74296d964bc2c9668ecaa5255e499636fe2b1450  wpa_supplicant-2.6.tar.gz
+sha256  08e23937e16d0155e55cab2b51f51fbe10d80a1aa91c4e15442645059b737ef6  wpa_supplicant-2.12.tar.gz
+sha256  83be1b142c59ccf0d6c5dde0695d8f84dfba109bea058e78ec2942389ccf327f  README

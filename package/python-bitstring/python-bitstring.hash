@@ -1,2 +1,5 @@
-# Locally computed:
-sha256	b769620c1b52d6c1548c6c4f055613f4eee3120ed8a5cff4ba4ffbbc8a582286  bitstring-3.1.5.tar.gz
+# md5, sha256 from https://pypi.org/pypi/bitstring/json
+md5  3a7e512ad3977f4c0ceb3beef0794b29  bitstring-4.4.0.tar.gz
+sha256  e682ac522bb63e041d16cbc9d0ca86a4f00194db16d0847c7efe066f836b2e37  bitstring-4.4.0.tar.gz
+# Locally computed sha256 checksums
+sha256  4110041ff5b99a3b0f64d4aa0c426fb9bb4fb3de69cd4c847e634f8e99b2c6f0  LICENSE

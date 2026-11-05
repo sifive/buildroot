@@ -4,13 +4,20 @@
 #
 ################################################################################
 
-RAPTOR_VERSION = 2.0.15
+RAPTOR_VERSION = 2.0.16
 RAPTOR_SOURCE = raptor2-$(RAPTOR_VERSION).tar.gz
 RAPTOR_SITE = http://download.librdf.org/source
 RAPTOR_DEPENDENCIES = libxml2 libxslt
 RAPTOR_LICENSE = GPL-2.0+ or LGPL-2.1+ or Apache-2.0+
 RAPTOR_LICENSE_FILES = LICENSE.txt
+RAPTOR_CPE_ID_VENDOR = librdf
+RAPTOR_CPE_ID_PRODUCT = raptor_rdf_syntax_library
 RAPTOR_INSTALL_STAGING = YES
+
+# 0003-Fix-Heap-read-buffer-overflow-in-ntriples-bnode.patch
+RAPTOR_IGNORE_CVES += CVE-2024-57822
+# 0004-Fix-integer-underflow-in-raptor_uri_normalize_path.patch
+RAPTOR_IGNORE_CVES += CVE-2024-57823
 
 # Flag is added to make sure the patch is applied for the configure.ac of raptor.
 RAPTOR_AUTORECONF = YES

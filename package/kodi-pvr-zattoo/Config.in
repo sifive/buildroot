@@ -1,0 +1,8 @@
+config BR2_PACKAGE_KODI_PVR_ZATTOO
+	bool "kodi-pvr-zattoo"
+	select BR2_PACKAGE_JSON_FOR_MODERN_CPP
+	select BR2_PACKAGE_TINYXML2
+	help
+	  Kodi PVR-Addon for Zattoo
+
+	  https://github.com/rbuehlma/pvr.zattoo

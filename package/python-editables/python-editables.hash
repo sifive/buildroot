@@ -1,0 +1,5 @@
+# md5, sha256 from https://pypi.org/pypi/editables/json
+md5  658e28eab5b342442d8edc42ff4fa3bd  editables-0.6.tar.gz
+sha256  1163834902381c4613787951c5914800fdf155ae08848a373b8ea5006780977c  editables-0.6.tar.gz
+# Locally computed sha256 checksums
+sha256  65f80d840245883efab92f8c70b60cb483d3b734fc95f208364ff69811d602c4  LICENSE.txt

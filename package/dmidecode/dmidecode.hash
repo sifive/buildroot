@@ -1,2 +1,4 @@
-# Locally computed
-sha256 d766ce9b25548c59b1e7e930505b4cad9a7bb0b904a1a391fbb604d529781ac0  dmidecode-3.1.tar.xz
+# Locally computed after checking pgp signature from:
+# https://download.savannah.gnu.org/releases/dmidecode/dmidecode-3.7.tar.xz.sig
+sha256  2c3aed12c85a1e6a9410d406d5e417c455466dc1bc7c89278bb32cf7cad91e8a  dmidecode-3.7.tar.xz
+sha256  8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643  LICENSE

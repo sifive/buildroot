@@ -4,11 +4,12 @@
 #
 ################################################################################
 
-MOSH_VERSION = 1.3.2
-MOSH_SITE = https://mosh.org
+MOSH_VERSION = 1.4.0
+MOSH_SITE = https://github.com/mobile-shell/mosh/releases/download/mosh-$(MOSH_VERSION)
 MOSH_DEPENDENCIES = zlib ncurses protobuf host-pkgconf
 MOSH_LICENSE = GPL-3.0+ with exception
 MOSH_LICENSE_FILES = COPYING COPYING.iOS
+MOSH_AUTORECONF = YES
 
 ifeq ($(BR2_PACKAGE_OPENSSL),y)
 MOSH_CONF_OPTS += --with-crypto-library=openssl

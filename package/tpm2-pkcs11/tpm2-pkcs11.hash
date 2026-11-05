@@ -1,0 +1,4 @@
+# From https://github.com/tpm2-software/tpm2-pkcs11/releases/tag/1.10.1
+sha256  f3315d17811f918779a1046ba20e49060a40b2b586a06ab013ff8c8da53752e4  tpm2-pkcs11-1.10.1.tar.gz
+# Locally computed:
+sha256  793aa007f793458434d7cc60b1c827053a399308658b32fcaa6023802adc22e1  LICENSE

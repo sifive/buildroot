@@ -1,2 +1,5 @@
-# From http://download.videolan.org/pub/videolan/libdvdcss/1.4.0/libdvdcss-1.4.0.tar.bz2.sha256
-sha256	2089375984800df29a4817b37f3123c1706723342d6dab4d0a8b75c25c2c845a	libdvdcss-1.4.0.tar.bz2
+# From http://download.videolan.org/pub/videolan/libdvdcss/1.6.0/libdvdcss-1.6.0.tar.xz.sha256
+sha256  7ea556c846b7bfc32d47b41cae56d1863a6b6d5f706bb162778d6f298490977c  libdvdcss-1.6.0.tar.xz
+
+# Hash for license file:
+sha256  8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643  COPYING

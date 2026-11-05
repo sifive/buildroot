@@ -11,6 +11,9 @@ TEKUI_LICENSE = MIT
 TEKUI_LICENSE_FILES = COPYRIGHT
 TEKUI_DEPENDENCIES = freetype luainterpreter
 
+# Package does not build in parallel due to improper make rules
+TEKUI_MAKE = $(MAKE1)
+
 TEKUI_MAKE_OPTS = \
 	CC="$(TARGET_CC) -fPIC" \
 	AR="$(TARGET_AR) rcu" \
@@ -39,13 +42,6 @@ TEKUI_MAKE_OPTS += \
 	X11_DEFS="-D_XOPEN_SOURCE -DENABLE_XFT -DENABLE_XVID -I$(STAGING_DIR)/usr/include/freetype2 -I$(STAGING_DIR)/usr/include/fontconfig" \
 	DISPLAY_DRIVER=x11
 else
-ifeq ($(BR2_PACKAGE_DIRECTFB),y)
-TEKUI_DEPENDENCIES += directfb
-TEKUI_MAKE_OPTS += \
-	DIRECTFB_LIBS="-lfreetype -ldirectfb -lpthread" \
-	DIRECTFB_DEFS="-D_REENTRANT -I$(STAGING_DIR)/usr/include/directfb -I$(STAGING_DIR)/usr/include/freetype2" \
-	DISPLAY_DRIVER=directfb
-else
 TEKUI_MAKE_OPTS += \
 	FREETYPE_LIBS=-lfreetype \
 	FREETYPE_DEFS="-I$(STAGING_DIR)/usr/include/freetype2" \
@@ -53,14 +49,13 @@ TEKUI_MAKE_OPTS += \
 	RAWFB_SUB_DEFS="-DDEF_FONTDIR=\\\"$(TEKUI_FONTDIR)\\\"" \
 	DISPLAY_DRIVER=rawfb
 endif
-endif
 
 define TEKUI_BUILD_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) $(TEKUI_MAKE_OPTS) PREFIX="/usr" -C $(@D) all
+	$(TARGET_MAKE_ENV) $(TEKUI_MAKE) $(TEKUI_MAKE_OPTS) PREFIX="/usr" -C $(@D) all
 endef
 
 define TEKUI_INSTALL_TARGET_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) $(TEKUI_MAKE_OPTS) PREFIX="$(TARGET_DIR)/usr" -C $(@D) install
+	$(TARGET_MAKE_ENV) $(TEKUI_MAKE) $(TEKUI_MAKE_OPTS) PREFIX="$(TARGET_DIR)/usr" -C $(@D) install
 endef
 
 $(eval $(generic-package))

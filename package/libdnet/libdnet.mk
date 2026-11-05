@@ -4,23 +4,18 @@
 #
 ################################################################################
 
-LIBDNET_VERSION = 1.11
-LIBDNET_SITE = http://downloads.sourceforge.net/project/libdnet/libdnet/libdnet-$(LIBDNET_VERSION)
+LIBDNET_VERSION = 1.18.0
+LIBDNET_SITE = $(call github,ofalk,libdnet,libdnet-$(LIBDNET_VERSION))
 LIBDNET_LICENSE = BSD-3-Clause
 LIBDNET_LICENSE_FILES = LICENSE
 LIBDNET_INSTALL_STAGING = YES
 LIBDNET_AUTORECONF = YES
 LIBDNET_CONF_OPTS = \
 	--with-gnu-ld \
-	--with-check=no
-
-ifneq ($(BR2_PACKAGE_LIBDNET_PYTHON),)
-LIBDNET_DEPENDENCIES = python
-LIBDNET_CONF_OPTS += --with-python
-LIBDNET_MAKE_OPTS = PYINCDIR=$(STAGING_DIR)/usr/include/python$(PYTHON_VERSION_MAJOR) PYLIBDIR=$(STAGING_DIR)/usr/lib
-LIBDNET_INSTALL_TARGET_OPTS = $(LIBDNET_MAKE_OPTS) DESTDIR=$(TARGET_DIR) INSTALL_STRIP_FLAG=-s install-exec
-LIBDNET_INSTALL_STAGING_OPTS = $(LIBDNET_MAKE_OPTS) DESTDIR=$(STAGING_DIR) install
-endif
+	--with-check=no \
+	--without-python
+LIBDNET_CONFIG_SCRIPTS = dnet-config
+LIBDNET_DEPENDENCIES = host-pkgconf
 
 # Needed for autoreconf to work properly
 define LIBDNET_FIXUP_ACINCLUDE_M4

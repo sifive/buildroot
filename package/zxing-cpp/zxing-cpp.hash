@@ -1,2 +1,5 @@
 # Locally calculated
-sha256 643c931a35c363109cd38c5a1526505b75f57c0634907cb7b6bc24f6f48eb32b zxing-cpp-0db7f855135222becff193671faae79c083424b6.tar.gz
+sha256  64e4139103fdbc57752698ee15b5f0b0f7af9a0331ecbdc492047e0772c417ba  zxing-cpp-2.3.0.tar.gz
+
+# License files
+sha256  c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08  LICENSE

@@ -5,15 +5,17 @@
 ################################################################################
 
 # When updating the version here, also update utils/scancpan
-PERL_VERSION_MAJOR = 26
-PERL_VERSION = 5.$(PERL_VERSION_MAJOR).1
-PERL_SITE = http://www.cpan.org/src/5.0
+PERL_VERSION_MAJOR = 42
+PERL_VERSION = 5.$(PERL_VERSION_MAJOR).3
+PERL_SITE = https://www.cpan.org/src/5.0
 PERL_SOURCE = perl-$(PERL_VERSION).tar.xz
 PERL_LICENSE = Artistic or GPL-1.0+
 PERL_LICENSE_FILES = Artistic Copying README
+PERL_CPE_ID_VENDOR = perl
+PERL_DEPENDENCIES = $(TARGET_NLS_DEPENDENCIES)
 PERL_INSTALL_STAGING = YES
 
-PERL_CROSS_VERSION = 1.1.7
+PERL_CROSS_VERSION = 1.6.4
 # DO NOT refactor with the github helper (the result is not the same)
 PERL_CROSS_SITE = https://github.com/arsv/perl-cross/releases/download/$(PERL_CROSS_VERSION)
 PERL_CROSS_SOURCE = perl-cross-$(PERL_CROSS_VERSION).tar.gz
@@ -24,10 +26,20 @@ PERL_EXTRA_DOWNLOADS = $(PERL_CROSS_SITE)/$(PERL_CROSS_SOURCE)
 # as a separate package. Instead, it is downloaded and extracted
 # together with perl
 define PERL_CROSS_EXTRACT
-	$(call suitable-extractor,$(PERL_CROSS_SOURCE)) $(DL_DIR)/$(PERL_CROSS_SOURCE) | \
+	$(call suitable-extractor,$(PERL_CROSS_SOURCE)) $(PERL_DL_DIR)/$(PERL_CROSS_SOURCE) | \
 	$(TAR) --strip-components=1 -C $(@D) $(TAR_OPTIONS) -
+	mv $(@D)/cnf/diffs/perl5-5.42.0 $(@D)/cnf/diffs/perl5-5.42.3
 endef
 PERL_POST_EXTRACT_HOOKS += PERL_CROSS_EXTRACT
+
+# We need to patch perl-cross, but perl-cross is extracted over the
+# target perl sources only (and not the host variant). So we apply the
+# patch only for the target case using a post patch hook.
+define PERL_CROSS_PATCH
+	$(APPLY_PATCHES) $(@D) $(PERL_PKGDIR)/perl-cross \
+		0001-configure-keep-_GNU_SOURCE-in-build-flags.patch
+endef
+PERL_POST_PATCH_HOOKS += PERL_CROSS_PATCH
 
 # Even though perl is not an autotools-package, it uses config.sub and
 # config.guess. Up-to-date versions of these files may be needed to build perl
@@ -50,7 +62,7 @@ PERL_CONF_OPTS = \
 	--prefix=/usr \
 	-Dld="$(TARGET_CC)" \
 	-Dccflags="$(TARGET_CFLAGS)" \
-	-Dldflags="$(TARGET_LDFLAGS) -lm" \
+	-Dldflags="$(TARGET_LDFLAGS) -lm $(TARGET_NLS_LIBS)" \
 	-Dmydomain="" \
 	-Dmyhostname="noname" \
 	-Dmyuname="Buildroot $(BR2_VERSION_FULL)" \
@@ -60,6 +72,10 @@ PERL_CONF_OPTS = \
 
 ifeq ($(shell expr $(PERL_VERSION_MAJOR) % 2), 1)
 PERL_CONF_OPTS += -Dusedevel
+endif
+
+ifeq ($(BR2_PACKAGE_PERL_THREADS),y)
+PERL_CONF_OPTS += -Dusethreads
 endif
 
 ifeq ($(BR2_STATIC_LIBS),y)
@@ -74,7 +90,7 @@ endif
 define PERL_CONFIGURE_CMDS
 	(cd $(@D); $(TARGET_MAKE_ENV) HOSTCC='$(HOSTCC_NOCCACHE)' \
 		./configure $(PERL_CONF_OPTS))
-	$(SED) 's/UNKNOWN-/Buildroot $(BR2_VERSION_FULL) /' $(@D)/patchlevel.h
+	$(SED) 's/UNKNOWN-/Buildroot $(subst /,\/,$(BR2_VERSION_FULL)) /' $(@D)/patchlevel.h
 endef
 
 define PERL_BUILD_CMDS
@@ -92,7 +108,9 @@ endef
 HOST_PERL_CONF_OPTS = \
 	-des \
 	-Dprefix="$(HOST_DIR)" \
-	-Dcc="$(HOSTCC)"
+	-Dcc="$(HOSTCC)" \
+	-Dccflags="$(HOST_CFLAGS)" \
+	-Dldflags="$(HOST_LDFLAGS)"
 
 define HOST_PERL_CONFIGURE_CMDS
 	(cd $(@D); $(HOST_MAKE_ENV) HOSTCC='$(HOSTCC_NOCCACHE)' \

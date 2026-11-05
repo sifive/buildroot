@@ -4,22 +4,32 @@
 #
 ################################################################################
 
-CCACHE_VERSION = 3.3.4
-CCACHE_SITE = https://www.samba.org/ftp/ccache
+CCACHE_VERSION = 4.14.1
+CCACHE_SITE = https://github.com/ccache/ccache/releases/download/v$(CCACHE_VERSION)
 CCACHE_SOURCE = ccache-$(CCACHE_VERSION).tar.xz
 CCACHE_LICENSE = GPL-3.0+, others
-CCACHE_LICENSE_FILES = LICENSE.txt GPL-3.0.txt
+CCACHE_LICENSE_FILES = LICENSE.adoc GPL-3.0.txt
 
-# Force ccache to use its internal zlib. The problem is that without
-# this, ccache would link against the zlib of the build system, but we
-# might build and install a different version of zlib in $(O)/host
-# afterwards, which ccache will pick up. This might break if there is
-# a version mismatch. A solution would be to add host-zlib has a
-# dependency of ccache, but it would require tuning the zlib .mk file
-# to use HOSTCC_NOCCACHE as the compiler. Instead, we take the easy
-# path: tell ccache to use its internal copy of zlib, so that ccache
-# has zero dependency besides the C library.
-HOST_CCACHE_CONF_OPTS += --with-bundled-zlib
+# Do not add a recursive dependency to its own
+HOST_CCACHE_ADD_CCACHE_DEPENDENCY = NO
+
+HOST_CCACHE_DEPENDENCIES = host-hiredis host-zstd host-xxhash host-blake3
+
+# We are ccache, so we can't use ccache
+HOST_CCACHE_CONF_OPTS += \
+	-UCMAKE_C_COMPILER_LAUNCHER \
+	-UCMAKE_CXX_COMPILER_LAUNCHER \
+	-DCCACHE_DEV_MODE=OFF \
+	-DDEP_BLAKE3=SYSTEM \
+	-DDEP_FMT=BUNDLED \
+	-DDEP_CPPHTTPLIB=BUNDLED \
+	-DDEP_HIREDIS=SYSTEM \
+	-DDEP_NONSTDSPAN=BUNDLED \
+	-DDEP_TLEXPECTED=BUNDLED \
+	-DDEP_XXHASH=SYSTEM \
+	-DDEP_ZSTD=SYSTEM \
+	-DENABLE_DOCUMENTATION=OFF \
+	-DENABLE_TESTING=OFF
 
 # Patch host-ccache as follows:
 #  - Use BR_CACHE_DIR instead of CCACHE_DIR, because CCACHE_DIR
@@ -28,13 +38,17 @@ HOST_CCACHE_CONF_OPTS += --with-bundled-zlib
 #    BR2_CCACHE_DIR.
 #  - Change hard-coded last-ditch default to match path in .config, to avoid
 #    the need to specify BR_CACHE_DIR when invoking ccache directly.
-#    CCache replaces "%s" with the home directory of the current user,
-#    So rewrite BR_CACHE_DIR to take that into consideration for SDK purpose
-HOST_CCACHE_DEFAULT_CCACHE_DIR = $(patsubst $(HOME)/%,\%s/%,$(BR_CACHE_DIR))
+#    CCache replaces "home_dir" with the home directory of the current user,
+#    so rewrite BR_CACHE_DIR to take that into consideration for SDK purpose
+HOST_CCACHE_DEFAULT_CCACHE_DIR = $(patsubst $(HOME)/%,%,$(BR_CACHE_DIR))
 
 define HOST_CCACHE_PATCH_CONFIGURATION
-	sed -i 's,getenv("CCACHE_DIR"),getenv("BR_CACHE_DIR"),' $(@D)/ccache.c
-	sed -i 's,"%s/.ccache","$(HOST_CCACHE_DEFAULT_CCACHE_DIR)",' $(@D)/conf.c
+	sed -i 's,getenv("CCACHE_DIR"),getenv("BR_CACHE_DIR"),' $(@D)/src/ccache/config.cpp
+	sed -i 's,".ccache","$(HOST_CCACHE_DEFAULT_CCACHE_DIR)",' $(@D)/src/ccache/config.cpp
+	sed -i 's,"/.cache/ccache","/$(HOST_CCACHE_DEFAULT_CCACHE_DIR)",' $(@D)/src/ccache/config.cpp
+	sed -i 's,"/.config/ccache","/$(HOST_CCACHE_DEFAULT_CCACHE_DIR)",' $(@D)/src/ccache/config.cpp
+	sed -i 's,getenv("XDG_CACHE_HOME"),nullptr,' $(@D)/src/ccache/config.cpp
+	sed -i 's,getenv("XDG_CONFIG_HOME"),nullptr,' $(@D)/src/ccache/config.cpp
 endef
 
 HOST_CCACHE_POST_PATCH_HOOKS += HOST_CCACHE_PATCH_CONFIGURATION
@@ -57,7 +71,7 @@ endef
 HOST_CCACHE_POST_INSTALL_HOOKS += HOST_CCACHE_DO_INITIAL_SETUP
 endif
 
-$(eval $(host-autotools-package))
+$(eval $(host-cmake-package))
 
 ifeq ($(BR2_CCACHE),y)
 ccache-stats: host-ccache

@@ -1,3 +1,5 @@
-# md5 from https://pypi.python.org/pypi/attrs/json, sha256 locally computed
-md5	3b7136a570f3ff8a4ff42e7360073f9f  attrs-17.2.0.tar.gz
-sha256	5d4d1b99f94d69338f485984127e4473b3ab9e20f43821b0e546cc3b2302fd11  attrs-17.2.0.tar.gz
+# md5, sha256 from https://pypi.org/pypi/attrs/json
+md5  633953d1aa39cfa76c733a20fdd9c196  attrs-26.1.0.tar.gz
+sha256  d03ceb89cb322a8fd706d4fb91940737b6642aa36998fe130a9bc96c985eff32  attrs-26.1.0.tar.gz
+# Locally computed sha256 checksums
+sha256  882115c95dfc2af1eeb6714f8ec6d5cbcabf667caff8729f42420da63f714e9f  LICENSE

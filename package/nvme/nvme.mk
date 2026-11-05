@@ -4,18 +4,17 @@
 #
 ################################################################################
 
-NVME_VERSION = v1.3
-NVME_SITE = $(call github,linux-nvme,nvme-cli,$(NVME_VERSION))
+NVME_VERSION = 2.15
+NVME_SITE = $(call github,linux-nvme,nvme-cli,v$(NVME_VERSION))
 NVME_LICENSE = GPL-2.0+
 NVME_LICENSE_FILES = LICENSE
+NVME_DEPENDENCIES = libnvme
 
-define NVME_BUILD_CMDS
-	$(TARGET_MAKE_ENV) $(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D)
-endef
+ifeq ($(BR2_PACKAGE_JSON_C),y)
+NVME_CONF_OPTS += -Djson-c=enabled
+NVME_DEPENDENCIES += json-c
+else
+NVME_CONF_OPTS += -Djson-c=disabled
+endif
 
-define NVME_INSTALL_TARGET_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) DESTDIR=$(TARGET_DIR) \
-		PREFIX=/usr install-bin
-endef
-
-$(eval $(generic-package))
+$(eval $(meson-package))

@@ -4,22 +4,33 @@
 #
 ################################################################################
 
-FONTCONFIG_VERSION = 2.12.4
-FONTCONFIG_SITE = http://fontconfig.org/release
-FONTCONFIG_SOURCE = fontconfig-$(FONTCONFIG_VERSION).tar.bz2
+FONTCONFIG_VERSION = 2.17.1
+FONTCONFIG_SITE = https://gitlab.freedesktop.org/api/v4/projects/890/packages/generic/fontconfig/$(FONTCONFIG_VERSION)
+FONTCONFIG_SOURCE = fontconfig-$(FONTCONFIG_VERSION).tar.xz
 FONTCONFIG_INSTALL_STAGING = YES
-FONTCONFIG_DEPENDENCIES = freetype expat host-pkgconf host-gperf
-HOST_FONTCONFIG_DEPENDENCIES = host-freetype host-expat host-pkgconf host-gperf
+FONTCONFIG_DEPENDENCIES = freetype expat host-pkgconf host-gperf \
+	$(TARGET_NLS_DEPENDENCIES)
+HOST_FONTCONFIG_DEPENDENCIES = host-freetype host-expat host-pkgconf \
+	host-gperf host-gettext
 FONTCONFIG_LICENSE = fontconfig license
 FONTCONFIG_LICENSE_FILES = COPYING
-
-FONTCONFIG_CONF_OPTS = \
-	--with-arch=$(GNU_TARGET_NAME) \
-	--with-cache-dir=/var/cache/fontconfig \
-	--disable-docs
+FONTCONFIG_CPE_ID_VALID = YES
 
 HOST_FONTCONFIG_CONF_OPTS = \
-	--disable-static
+	-Dtests=disabled \
+	-Ddoc=disabled
 
-$(eval $(autotools-package))
-$(eval $(host-autotools-package))
+FONTCONFIG_CONF_OPTS = \
+	-Dcache-dir=/var/cache/fontconfig \
+	-Dtests=disabled \
+	-Ddoc=disabled
+
+FONTCONFIG_CFLAGS = $(TARGET_CFLAGS)
+
+# See: https://gitlab.freedesktop.org/fontconfig/fontconfig/-/issues/436
+ifeq ($(BR2_DEBUG_3),y)
+FONTCONFIG_CFLAGS += -g2
+endif
+
+$(eval $(meson-package))
+$(eval $(host-meson-package))

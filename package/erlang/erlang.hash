@@ -1,3 +1,5 @@
-# md5 from http://www.erlang.org/download/MD5, sha256 locally computed
-md5	a8c259ec47bf84e77510673e1b76b6db	otp_src_19.3.tar.gz
-sha256  fe4a00651db39b8542b04530a48d24b2f2e7e0b77cbe93d728c9f05325bdfe83	otp_src_19.3.tar.gz
+# From https://github.com/erlang/otp/releases/download/OTP-26.2.5.21/SHA256.txt
+sha256  e1fde86f4e2874d4c136221a34753b5b785d762b910fb3fb35a23a6a7faf0a64  otp_src_26.2.5.21.tar.gz
+
+# Hash for license file
+sha256  809fa1ed21450f59827d1e9aec720bbc4b687434fa22283c6cb5dd82a47ab9c0  LICENSE.txt

@@ -1,2 +1,5 @@
-# From http://www.cmake.org/files/v3.8/cmake-3.8.2-SHA-256.txt
-sha256 da3072794eb4c09f2d782fcee043847b99bb4cf8d4573978d9b2024214d6e92d  cmake-3.8.2.tar.gz
+# From https://cmake.org/files/v4.4/cmake-4.4.4-SHA-256.txt
+sha256  bd24c30d80a7744ae84b845ff080cc8453b06c622ef01066564108e9cefc44cf  cmake-4.4.4.tar.gz
+
+# Locally calculated
+sha256  4382e7c1879ac90e3f101a395d23846fa4dbcaa1eed7265b43681e348754825d  LICENSE.rst

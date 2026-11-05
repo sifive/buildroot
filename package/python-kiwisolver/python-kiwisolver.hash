@@ -1,0 +1,5 @@
+# md5, sha256 from https://pypi.org/pypi/kiwisolver/json
+md5  d36514b0cd15dbbe94576202afe7a5cb  kiwisolver-1.5.1.tar.gz
+sha256  f1303ef2eec81262a4b708c3e858afe58d7c75ad91c1c05266eda7673369859a  kiwisolver-1.5.1.tar.gz
+# Locally computed sha256 checksums
+sha256  529c40e5f67f2f88904657a9f7879ae2f8dc76bc9bfef9cb10d988b48804ed61  LICENSE

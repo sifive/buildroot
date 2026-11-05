@@ -1,3 +1,6 @@
-# retrieved by scancpan from http://cpan.metacpan.org/
-md5    8c5f25fb64b974d22aff424476ba13c9 LWP-MediaTypes-6.02.tar.gz
-sha256 18790b0cc5f0a51468495c3847b16738f785a2d460403595001e0b932e5db676 LWP-MediaTypes-6.02.tar.gz
+# retrieved by scancpan from https://cpan.metacpan.org/
+md5  61257954fffa7a48f507b058f27efeb8  LWP-MediaTypes-6.05.tar.gz
+sha256  abb2dcfbf069317fe65b098e3b2ad58c5eb33e9a839b9190cce6d371f8966cc1  LWP-MediaTypes-6.05.tar.gz
+
+# computed by scancpan
+sha256  994ab45a4f8ef43f47b7baabc48d100838c42d226d8d161d6ac1f49c5f9d7c84  LICENSE

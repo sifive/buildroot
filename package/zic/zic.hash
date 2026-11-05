@@ -1,2 +1,4 @@
-# From http://mm.icann.org/pipermail/tz-announce/2017-March/000046.html
-sha512 9a73af4b868506d1f6287a8285dea489e68f6828da19509114f9144e2a2019c7fd28f4fb98ea907030d11d011ce3a87d99dbe43bca218beddafff151f0d61df1	tzcode2017b.tar.gz
+# https://lists.iana.org/hyperkitty/list/tz-announce@iana.org/thread/VX2Z3CBO6KHTYZNBBKFFWM7ZCI6TVCXP/
+sha512  55b44d52a83c9db151be32c3d78376ea7f9d4311ef15ed6fe34b855b08fc546531e51309d178d9c175a6d5d7d0b058440e45a55d200ca8925e3798dac9bc739f  tzcode2026b.tar.gz
+# Locally computed:
+sha256  0613408568889f5739e5ae252b722a2659c02002839ad970a63dc5e9174b27cf  LICENSE

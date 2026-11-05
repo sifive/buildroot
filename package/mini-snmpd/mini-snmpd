@@ -1,0 +1,2 @@
+# Require client authentication, thus SNMP version 2c
+DAEMON_OPTS="-a -c public -s"

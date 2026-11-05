@@ -4,70 +4,83 @@
 #
 ################################################################################
 
-PYTHON_PILLOW_VERSION = 4.2.1
-PYTHON_PILLOW_SOURCE = Pillow-$(PYTHON_PILLOW_VERSION).tar.gz
-PYTHON_PILLOW_SITE = https://pypi.python.org/packages/55/aa/f7f983fb72710a9daa4b3374b7c160091d3f94f5c09221f9336ade9027f3
-PYTHON_PILLOW_LICENSE = PIL Software License
+PYTHON_PILLOW_VERSION = 13.0.0
+PYTHON_PILLOW_SITE = https://files.pythonhosted.org/packages/ce/a4/9cc30690a394a8305e8be4c9036aa16d0dfddadd09079860b582f562496d
+PYTHON_PILLOW_SOURCE = pillow-$(PYTHON_PILLOW_VERSION).tar.gz
+PYTHON_PILLOW_LICENSE = MIT-CMU
 PYTHON_PILLOW_LICENSE_FILES = LICENSE
+PYTHON_PILLOW_CPE_ID_VENDOR = python
+PYTHON_PILLOW_CPE_ID_PRODUCT = pillow
 PYTHON_PILLOW_SETUP_TYPE = setuptools
-PYTHON_PILLOW_BUILD_OPTS = --disable-platform-guessing
+
+PYTHON_PILLOW_DEPENDENCIES = host-pkgconf python-pybind
+PYTHON_PILLOW_BUILD_OPTS = \
+	--skip-dependency-check \
+	-Cplatform-guessing=disable \
+	-Cimagequant=disable \
+	-Craqm=disable
 
 ifeq ($(BR2_PACKAGE_FREETYPE),y)
 PYTHON_PILLOW_DEPENDENCIES += freetype
-PYTHON_PILLOW_BUILD_OPTS += --enable-freetype
+PYTHON_PILLOW_BUILD_OPTS += -Cfreetype=enable
 else
-PYTHON_PILLOW_BUILD_OPTS += --disable-freetype
+PYTHON_PILLOW_BUILD_OPTS += -Cfreetype=disable
 endif
 
 ifeq ($(BR2_PACKAGE_JPEG),y)
 PYTHON_PILLOW_DEPENDENCIES += jpeg
-PYTHON_PILLOW_BUILD_OPTS += --enable-jpeg
+PYTHON_PILLOW_BUILD_OPTS += -Cjpeg=enable
 else
-PYTHON_PILLOW_BUILD_OPTS += --disable-jpeg
+PYTHON_PILLOW_BUILD_OPTS += -Cjpeg=disable
+endif
+
+ifeq ($(BR2_PACKAGE_LCMS2),y)
+PYTHON_PILLOW_DEPENDENCIES += lcms2
+PYTHON_PILLOW_BUILD_OPTS += -Clcms=enable
+else
+PYTHON_PILLOW_BUILD_OPTS += -Clcms=disable
+endif
+
+ifeq ($(BR2_PACKAGE_LIBAVIF),y)
+PYTHON_PILLOW_DEPENDENCIES += libavif
+PYTHON_PILLOW_BUILD_OPTS += -Cavif=enable
+else
+PYTHON_PILLOW_BUILD_OPTS += -Cavif=disable
+endif
+
+ifeq ($(BR2_PACKAGE_LIBXCB),y)
+PYTHON_PILLOW_DEPENDENCIES += libxcb
+PYTHON_PILLOW_BUILD_OPTS += -Cxcb=enable
+else
+PYTHON_PILLOW_BUILD_OPTS += -Cxcb=disable
 endif
 
 ifeq ($(BR2_PACKAGE_OPENJPEG),y)
 PYTHON_PILLOW_DEPENDENCIES += openjpeg
-PYTHON_PILLOW_BUILD_OPTS += --enable-jpeg2000
+PYTHON_PILLOW_BUILD_OPTS += -Cjpeg2000=enable
 else
-PYTHON_PILLOW_BUILD_OPTS += --disable-jpeg2000
+PYTHON_PILLOW_BUILD_OPTS += -Cjpeg2000=disable
 endif
 
 ifeq ($(BR2_PACKAGE_TIFF),y)
 PYTHON_PILLOW_DEPENDENCIES += tiff
-PYTHON_PILLOW_BUILD_OPTS += --enable-tiff
+PYTHON_PILLOW_BUILD_OPTS += -Ctiff=enable
 else
-PYTHON_PILLOW_BUILD_OPTS += --disable-tiff
+PYTHON_PILLOW_BUILD_OPTS += -Ctiff=disable
 endif
 
-ifeq ($(BR2_PACKAGE_WEBP),y)
+ifeq ($(BR2_PACKAGE_WEBP)$(BR2_PACKAGE_WEBP_DEMUX)$(BR2_PACKAGE_WEBP_MUX),yyy)
 PYTHON_PILLOW_DEPENDENCIES += webp
-PYTHON_PILLOW_BUILD_OPTS += --enable-webp
+PYTHON_PILLOW_BUILD_OPTS += -Cwebp=enable
 else
-PYTHON_PILLOW_BUILD_OPTS += --disable-webp
+PYTHON_PILLOW_BUILD_OPTS += -Cwebp=disable
 endif
 
 ifeq ($(BR2_PACKAGE_ZLIB),y)
 PYTHON_PILLOW_DEPENDENCIES += zlib
-PYTHON_PILLOW_BUILD_OPTS += --enable-zlib
+PYTHON_PILLOW_BUILD_OPTS += -Czlib=enable
 else
-PYTHON_PILLOW_BUILD_OPTS += --disable-zlib
+PYTHON_PILLOW_BUILD_OPTS += -Czlib=disable
 endif
-
-define PYTHON_PILLOW_BUILD_CMDS
-	cd $(PYTHON_PILLOW_BUILDDIR); \
-		$(PYTHON_PILLOW_BASE_ENV) $(PYTHON_PILLOW_ENV) \
-		$(PYTHON_PILLOW_PYTHON_INTERPRETER) setup.py build_ext \
-		$(PYTHON_PILLOW_BASE_BUILD_OPTS) $(PYTHON_PILLOW_BUILD_OPTS)
-endef
-
-define PYTHON_PILLOW_INSTALL_TARGET_CMDS
-	cd $(PYTHON_PILLOW_BUILDDIR); \
-		$(PYTHON_PILLOW_BASE_ENV) $(PYTHON_PILLOW_ENV) \
-		$(PYTHON_PILLOW_PYTHON_INTERPRETER) setup.py build_ext \
-		$(PYTHON_PILLOW_BUILD_OPTS) install \
-		$(PYTHON_PILLOW_BASE_INSTALL_TARGET_OPTS) \
-		$(PYTHON_PILLOW_INSTALL_TARGET_OPTS)
-endef
 
 $(eval $(python-package))

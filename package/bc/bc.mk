@@ -4,16 +4,16 @@
 #
 ################################################################################
 
-BC_VERSION = 1.06.95
-BC_SOURCE = bc-$(BC_VERSION).tar.bz2
-BC_SITE = http://alpha.gnu.org/gnu/bc
+BC_VERSION = 1.08.2
+BC_SITE = $(BR2_GNU_MIRROR)/bc
 BC_DEPENDENCIES = host-flex
 BC_LICENSE = GPL-2.0+, LGPL-2.1+
 BC_LICENSE_FILES = COPYING COPYING.LIB
+BC_CPE_ID_VENDOR = gnu
+BC_CONF_ENV = MAKEINFO=true
 
-# Build after busybox so target ends up with bc's "dc" version
-ifeq ($(BR2_PACKAGE_BUSYBOX),y)
-BC_DEPENDENCIES += busybox
-endif
+# 0001-bc-use-MAKEINFO-variable-for-docs.patch
+# is patching doc/Makefile.am
+BC_AUTORECONF = YES
 
 $(eval $(autotools-package))

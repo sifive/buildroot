@@ -1,0 +1,76 @@
+From 3d198be196bdc59ba332b87d8c2959de0b9160d2 Mon Sep 17 00:00:00 2001
+From: Giulio Benetti <giulio.benetti@benettiengineering.com>
+Date: Sat, 20 Jan 2024 13:29:28 +0100
+Subject: [PATCH] Provide replacement function for strerror_l()
+
+strerror_l() is not implemented in some C libraries, such as uClibc,
+so let's provide a simple replacement define that falls back on
+strerror() in utils.h header and include it where missing.
+
+Upstream: N/A since it's due uclibc only
+
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Signed-off-by: Giulio Benetti <giulio.benetti@benettiengineering.com>
+[Giulio: ported to version 3.0, 3.1 and 3.5]
+---
+ configure.ac          | 2 ++
+ src/utils/dev_utils.c | 1 +
+ src/utils/module.c    | 1 +
+ src/utils/utils.h     | 4 ++++
+ 4 files changed, 8 insertions(+)
+
+diff --git a/configure.ac b/configure.ac
+index e5d65d8b..507fa854 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -123,6 +123,8 @@ AC_CHECK_HEADERS([dlfcn.h string.h unistd.h sys/fcntl.h sys/ioctl.h linux/random
+                  [LIBBLOCKDEV_SOFT_FAILURE([Header file $ac_header not found.])],
+                  [])
+ 
++AC_CHECK_FUNCS([strerror_l])
++
+ AC_ARG_WITH([escrow],
+     AS_HELP_STRING([--with-escrow], [support escrow @<:@default=yes@:>@]),
+     [],
+diff --git a/src/utils/dev_utils.c b/src/utils/dev_utils.c
+index 89a54b4c..b4be5b44 100644
+--- a/src/utils/dev_utils.c
++++ b/src/utils/dev_utils.c
+@@ -23,6 +23,7 @@
+ #include <errno.h>
+ 
+ #include "dev_utils.h"
++#include "utils.h"
+ 
+ /**
+  * bd_utils_dev_utils_error_quark: (skip)
+diff --git a/src/utils/module.c b/src/utils/module.c
+index 11e139f8..c8b124e0 100644
+--- a/src/utils/module.c
++++ b/src/utils/module.c
+@@ -28,6 +28,7 @@
+ #include "module.h"
+ #include "exec.h"
+ #include "logging.h"
++#include "utils.h"
+ 
+ 
+ /**
+diff --git a/src/utils/utils.h b/src/utils/utils.h
+index 801a8b6e..b2bdf0d0 100644
+--- a/src/utils/utils.h
++++ b/src/utils/utils.h
+@@ -9,6 +9,10 @@
+ #include "dbus.h"
+ #include "logging.h"
+ 
++#if !defined(HAVE_STRERROR_L)
++#define strerror_l(errnum, locale)      strerror(errnum)
++#endif
++
+ /**
+  * SECTION: utils
+  * @short_description: library providing utility functions used by the blockdev library and its plugins
+-- 
+2.47.3
+

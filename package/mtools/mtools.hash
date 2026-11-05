@@ -1,2 +1,5 @@
 # Locally calculated after checking pgp signature
-sha256	59e9cf80885399c4f229e5d87e49c0c2bfeec044e1386d59fcd0b0aead6b2f85	mtools-4.0.18.tar.bz2
+sha256  76dfea98d923dfc9806ce34bd1786aa9b5a39d70f56f26c0670a348c664f1d2a  mtools-4.0.49.tar.lz
+
+# Locally calculated
+sha256  8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903  COPYING

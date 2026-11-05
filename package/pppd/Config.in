@@ -1,14 +1,21 @@
 config BR2_PACKAGE_PPPD
 	bool "pppd"
 	depends on !BR2_STATIC_LIBS
-	depends on !BR2_TOOLCHAIN_USES_MUSL # Use __P() macro all over the tree
 	depends on BR2_USE_MMU
+	select BR2_PACKAGE_OPENSSL if BR2_TOOLCHAIN_USES_GLIBC
+	select BR2_PACKAGE_LIBOPENSSL_ENABLE_DES if BR2_PACKAGE_LIBOPENSSL
 	help
 	  An implementation of the Point-to-point protocol.
 
 	  http://www.samba.org/ppp/
 
 if BR2_PACKAGE_PPPD
+
+config BR2_PACKAGE_PPPD_CBCP
+	bool "CBCP (Callback Control Protocol)"
+	help
+	  Enable Callback Control Protocol (CBCP) support in pppd.
+	  https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cbcp/.
 
 config BR2_PACKAGE_PPPD_FILTER
 	bool "filtering"
@@ -18,13 +25,8 @@ config BR2_PACKAGE_PPPD_FILTER
 	  the pppd active-filter and pass-filter options
 	  are available.
 
-config BR2_PACKAGE_PPPD_RADIUS
-	bool "radius"
-	help
-	  Install RADIUS support for pppd
-
 endif
 
-comment "pppd needs a uClibc or glibc toolchain w/ dynamic library"
-	depends on BR2_STATIC_LIBS || BR2_TOOLCHAIN_USES_MUSL
+comment "pppd needs a toolchain w/ dynamic library"
+	depends on BR2_STATIC_LIBS
 	depends on BR2_USE_MMU

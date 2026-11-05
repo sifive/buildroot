@@ -4,12 +4,13 @@
 #
 ################################################################################
 
-LUVI_VERSION = v2.7.6
-LUVI_SITE = git://github.com/luvit/luvi.git
+LUVI_VERSION = 102-g9fa6c141abf24a5a7fe49ca39335210fa1be3ab4
+LUVI_SITE = https://github.com/luvit/luvi.git
+LUVI_SITE_METHOD = git
 LUVI_GIT_SUBMODULES = YES
 LUVI_LICENSE = Apache-2.0
 LUVI_LICENSE_FILES = LICENSE.txt
-LUVI_DEPENDENCIES = libuv luajit luv host-luajit
+LUVI_DEPENDENCIES = libuv luajit luv host-luajit host-pkgconf
 
 # Dispatch all architectures of LuaJIT
 ifeq ($(BR2_i386),y)
@@ -20,6 +21,10 @@ else ifeq ($(BR2_powerpc),y)
 LUVI_TARGET_ARCH = ppc
 else ifeq ($(BR2_arm)$(BR2_armeb),y)
 LUVI_TARGET_ARCH = arm
+else ifeq ($(BR2_aarch64),y)
+LUVI_TARGET_ARCH = arm64
+else ifeq ($(BR2_aarch64_be),y)
+LUVI_TARGET_ARCH = arm64be
 else ifeq ($(BR2_mips),y)
 LUVI_TARGET_ARCH = mips
 else ifeq ($(BR2_mipsel),y)
@@ -28,19 +33,24 @@ else
 LUVI_TARGET_ARCH = $(BR2_ARCH)
 endif
 
+# LUAJIT_VERSION and the luajit installation path may not use the
+# same value. Use the value from luajit.pc file.
+LUVI_LUAJIT_MAJVER = `$(PKG_CONFIG_HOST_BINARY) --variable=majver luajit`
+LUVI_LUAJIT_MINVER = `$(PKG_CONFIG_HOST_BINARY) --variable=minver luajit`
+
 # Bundled lua bindings have to be linked statically into the luvi executable
 LUVI_CONF_OPTS = \
 	-DBUILD_SHARED_LIBS=OFF \
 	-DWithSharedLibluv=ON \
 	-DTARGET_ARCH=$(LUVI_TARGET_ARCH) \
-	-DLUA_PATH=$(HOST_DIR)/share/luajit-$(LUAJIT_VERSION)/?.lua
+	-DLUA_PATH=$(HOST_DIR)/share/luajit-$(LUVI_LUAJIT_MAJVER).$(LUVI_LUAJIT_MINVER)/?.lua
 
-# Add "rex" module (PCRE via bundled lrexlib)
-ifeq ($(BR2_PACKAGE_PCRE),y)
-LUVI_DEPENDENCIES += pcre
-LUVI_CONF_OPTS += -DWithPCRE=ON -DWithSharedPCRE=ON
+# Add "rex" module (PCRE2 via bundled lrexlib)
+ifeq ($(BR2_PACKAGE_PCRE2),y)
+LUVI_DEPENDENCIES += pcre2
+LUVI_CONF_OPTS += -DWithPCRE2=ON -DWithSharedPCRE2=ON
 else
-LUVI_CONF_OPTS += -DWithPCRE=OFF -DWithSharedPCRE=OFF
+LUVI_CONF_OPTS += -DWithPCRE2=OFF -DWithSharedPCRE2=OFF
 endif
 
 # Add "ssl" module (via bundled lua-openssl)

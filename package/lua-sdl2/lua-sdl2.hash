@@ -1,2 +1,3 @@
 # Locally calculated
-sha256	36b626485529f318f284e0cc0c806d5a425fbde4e1e6329d4d5ee9f495ecff62  lua-sdl2-2.0.5.6.0-1.src.rock
+sha256  cee7875106062fbc00cf8acb3b2738e336e2327df73ede011968cb060c094bfb  lua-sdl2-2.0.5-6.0.tar.gz
+sha256  4f56a5b6943a8ff9611a39e7d4d88dba9ad314dcdf56c62a1425798a6e624494  LICENSE

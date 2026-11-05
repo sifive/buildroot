@@ -1,2 +1,3 @@
 # locally computed hash
-sha256	240fd398da741669bf3c90366f58452ea59041cacc741a489b99f2f6a0bad052	jpegsrc.v9b.tar.gz
+sha256  8b9eaa13242690ebd03e1728ab1edf97a81a78ed6e83624d493655f31ac95ab5  jpegsrc.v10.tar.gz
+sha256  913af09f785683accdf660b85dcf27fdd567d4ad649daa95cb8771b040db79d1  README

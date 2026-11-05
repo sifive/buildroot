@@ -13,6 +13,7 @@ if BR2_PACKAGE_BUSYBOX
 
 config BR2_PACKAGE_BUSYBOX_CONFIG
 	string "BusyBox configuration file to use?"
+	default "package/busybox/busybox-minimal.config" if !BR2_USE_MMU
 	default "package/busybox/busybox.config"
 	help
 	  Some people may wish to use their own modified BusyBox
@@ -38,11 +39,9 @@ config BR2_PACKAGE_BUSYBOX_SHOW_OTHERS
 
 config BR2_PACKAGE_BUSYBOX_SELINUX
 	bool "Enable SELinux support"
-	depends on BR2_TOOLCHAIN_HAS_THREADS
-	depends on !BR2_STATIC_LIBS
-	depends on BR2_TOOLCHAIN_USES_GLIBC
-	depends on !BR2_arc
-	select BR2_PACKAGE_LIBSELINUX
+	default y
+	depends on BR2_PACKAGE_LIBSELINUX
+	select BR2_PACKAGE_BUSYBOX_INDIVIDUAL_BINARIES
 	help
 	  Enable SELinux support in BusyBox. Please note that
 	  depending on your BusyBox configuration and the SELinux
@@ -59,7 +58,6 @@ config BR2_PACKAGE_BUSYBOX_SELINUX
 config BR2_PACKAGE_BUSYBOX_INDIVIDUAL_BINARIES
 	bool "Individual binaries"
 	depends on !BR2_STATIC_LIBS
-	depends on !BR2_bfin # libbusybox.so link issue
 	help
 	  By default (i.e with this option disabled), Busybox is
 	  installed as a single binary in /bin/busybox and all applets
@@ -70,7 +68,12 @@ config BR2_PACKAGE_BUSYBOX_INDIVIDUAL_BINARIES
 
 comment "Busybox individual binaries need a toolchain w/ dynamic library"
 	depends on BR2_STATIC_LIBS
-	depends on !BR2_bfin
+
+config BR2_PACKAGE_BUSYBOX_HTTPD
+	bool "Install the httpd server startup script"
+	help
+	  Install the httpd server startup script,
+	  that just start at the boot the busybox httpd server
 
 config BR2_PACKAGE_BUSYBOX_WATCHDOG
 	bool "Install the watchdog daemon startup script"

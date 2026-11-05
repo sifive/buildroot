@@ -4,23 +4,71 @@
 # menu options using "make menuconfig" and by running "make" with appropriate
 # packages enabled.
 
+import os
 import re
+from pathlib import Path
 
-from base import _CheckFunction
-# Notice: ignore 'imported but unused' from pyflakes for check functions.
-from lib import ConsecutiveEmptyLines
-from lib import EmptyLastLine
-from lib import NewlineAtEof
-from lib import TrailingSpace
+from checkpackagelib.base import _CheckFunction
+from checkpackagelib.lib import ConsecutiveEmptyLines  # noqa: F401
+from checkpackagelib.lib import EmptyLastLine          # noqa: F401
+from checkpackagelib.lib import NewlineAtEof           # noqa: F401
+from checkpackagelib.lib import TrailingSpace          # noqa: F401
+from checkpackagelib.lib import Utf8Characters         # noqa: F401
+from checkpackagelib.tool import NotExecutable         # noqa: F401
+
+# used in more than one check
+start_conditional = ["ifdef", "ifeq", "ifndef", "ifneq"]
+continue_conditional = ["elif", "else"]
+end_conditional = ["endif"]
+
+
+class DoNotInstallToHostdirUsr(_CheckFunction):
+    INSTALL_TO_HOSTDIR_USR = re.compile(r"^[^#].*\$\(HOST_DIR\)/usr")
+
+    def check_line(self, lineno, text):
+        if self.INSTALL_TO_HOSTDIR_USR.match(text.rstrip()):
+            return ["{}:{}: install files to $(HOST_DIR)/ instead of $(HOST_DIR)/usr/"
+                    .format(self.filename, lineno),
+                    text]
+
+
+class Ifdef(_CheckFunction):
+    IFDEF = re.compile(r"^\s*(else\s+|)(ifdef|ifndef)\s")
+
+    def check_line(self, lineno, text):
+        m = self.IFDEF.search(text)
+        if m is None:
+            return
+        word = m.group(2)
+        if word == 'ifdef':
+            return ["{}:{}: use ifeq ($(SYMBOL),y) instead of ifdef SYMBOL"
+                    .format(self.filename, lineno),
+                    text]
+        else:
+            return ["{}:{}: use ifneq ($(SYMBOL),y) instead of ifndef SYMBOL"
+                    .format(self.filename, lineno),
+                    text]
+
+
+def get_package_prefix_from_filename(filename):
+    """Return a tuple (pkgname, PKGNAME) with the package name derived from the file name"""
+    # Double splitext to support .mk.in
+    package = os.path.splitext(os.path.splitext(os.path.basename(filename))[0])[0]
+    # linux tools do not use LINUX_TOOL_ prefix for variables
+    package = package.replace("linux-tool-", "")
+    # linux extensions do not use LINUX_EXT_ prefix for variables
+    package = package.replace("linux-ext-", "")
+    package_upper = package.replace("-", "_").upper()
+    return package, package_upper
 
 
 class Indent(_CheckFunction):
-    COMMENT = re.compile("^\s*#")
-    CONDITIONAL = re.compile("^\s*(ifeq|ifneq|endif)\s")
+    COMMENT = re.compile(r"^\s*#")
+    CONDITIONAL = re.compile(r"^\s*({})\s".format("|".join(start_conditional + end_conditional + continue_conditional)))
     ENDS_WITH_BACKSLASH = re.compile(r"^[^#].*\\$")
-    END_DEFINE = re.compile("^\s*endef\s")
-    MAKEFILE_TARGET = re.compile("^[^# \t]+:\s")
-    START_DEFINE = re.compile("^\s*define\s")
+    END_DEFINE = re.compile(r"^\s*endef\s")
+    MAKEFILE_TARGET = re.compile(r"^[^# \t]+:\s")
+    START_DEFINE = re.compile(r"^\s*define\s")
 
     def before(self):
         self.define = False
@@ -38,7 +86,7 @@ class Indent(_CheckFunction):
         expect_tabs = False
         if self.define or self.backslash or self.makefile_target:
             expect_tabs = True
-        if self.CONDITIONAL.search(text):
+        if not self.backslash and self.CONDITIONAL.search(text):
             expect_tabs = False
 
         # calculate for next line
@@ -67,6 +115,136 @@ class Indent(_CheckFunction):
             if text.startswith("\t"):
                 return ["{}:{}: unexpected indent with tabs"
                         .format(self.filename, lineno),
+                        text]
+
+
+class MissingCVEPatch(_CheckFunction):
+    PATCH_COMMENT = re.compile(r"^#\s*(\S+\.patch)\s*$")
+    IGNORE_CVES = re.compile(r"^[A-Z0-9_]+_IGNORE_CVES\s*\+?=\s*(.*)$")
+    CVE_TAG_IN_PATCH = re.compile(r"^CVE: *([\w-]+)$", re.M)
+
+    def before(self):
+        self.pending_patches = []
+        self.pending_cves = []
+        self.package_dir = Path(self.filename).parent
+        self.line_continuation = False
+
+    def check_patch_files(self):
+        for patch_lineno, patch_name, patch_text in self.pending_patches:
+            patch_file = self.package_dir / patch_name
+
+            if not patch_file.is_file():
+                return ["{}:{}: patch file '{}' mentioned for ignored CVEs is missing"
+                        .format(self.filename, patch_lineno, patch_name),
+                        patch_text]
+
+            matches = self.CVE_TAG_IN_PATCH.finditer(patch_file.read_text())
+            trailers = [match.group(1) for match in matches]
+            if not trailers:
+                return ["{}: patch file '{}' is missing 'CVE:' tag"
+                        .format(self.filename, patch_name),
+                        patch_text]
+
+            if set(self.pending_cves) != set(trailers):
+                return ["{}: patch file '{}' 'CVE:' tag(s) '{}' does not match the ignored identifier(s) '{}'"
+                        .format(self.filename, patch_name, ", ".join(trailers), ", ".join(self.pending_cves)),
+                        patch_text]
+
+    def check_line(self, lineno, text):
+        m = self.PATCH_COMMENT.match(text.rstrip())
+        if m:
+            self.pending_patches.append((lineno, m.group(1), text))
+            return
+
+        # other comments do not break the association between the patch
+        # comment and the following _IGNORE_CVES assignment
+        if text.lstrip().startswith("#"):
+            return
+
+        m = self.IGNORE_CVES.search(text)
+        if m or self.line_continuation:
+            value = (m.group(1) if m else text).rstrip()
+            self.line_continuation = value.endswith("\\")
+            if self.line_continuation:
+                value = value[:-1]
+            self.pending_cves += value.split()
+            if self.line_continuation:
+                return
+            result = self.check_patch_files()
+            self.pending_cves = []
+            self.pending_patches = []
+            return result
+
+        self.pending_cves = []
+        self.pending_patches = []
+
+
+class OverriddenVariable(_CheckFunction):
+    CONCATENATING = re.compile(r"^([A-Z0-9_]+)\s*(\+|:|)=\s*\$\(\1\)")
+    END_CONDITIONAL = re.compile(r"^\s*({})".format("|".join(end_conditional)))
+    OVERRIDING_ASSIGNMENTS = [':=', "="]
+    START_CONDITIONAL = re.compile(r"^\s*({})".format("|".join(start_conditional)))
+    VARIABLE = re.compile(r"^([A-Z0-9_]+)\s*((\+|:|)=)")
+    USUALLY_OVERRIDDEN = re.compile(r"^[A-Z0-9_]+({})".format("|".join([
+        r"_ARCH\s*=\s*",
+        r"_CPU\s*=\s*",
+        r"_SITE\s*=\s*",
+        r"_SOURCE\s*=\s*",
+        r"_VERSION\s*=\s*"])))
+    FORBIDDEN_OVERRIDDEN = re.compile(r"^[A-Z0-9_]+({})".format("|".join([
+        r"_CONF_OPTS\s*=\s*",
+        r"_DEPENDENCIES\s*=\s*"])))
+
+    def before(self):
+        self.conditional = 0
+        self.unconditionally_set = []
+        self.conditionally_set = []
+
+    def check_line(self, lineno, text):
+        if self.START_CONDITIONAL.search(text):
+            self.conditional += 1
+            return
+        if self.END_CONDITIONAL.search(text):
+            self.conditional -= 1
+            return
+
+        m = self.VARIABLE.search(text)
+        if m is None:
+            return
+        variable, assignment = m.group(1, 2)
+
+        if self.conditional == 0:
+            if variable in self.conditionally_set:
+                self.unconditionally_set.append(variable)
+                if assignment in self.OVERRIDING_ASSIGNMENTS:
+                    return ["{}:{}: unconditional override of variable {} previously conditionally set"
+                            .format(self.filename, lineno, variable),
+                            text]
+
+            if variable not in self.unconditionally_set:
+                self.unconditionally_set.append(variable)
+                return
+            if assignment in self.OVERRIDING_ASSIGNMENTS:
+                return ["{}:{}: unconditional override of variable {}"
+                        .format(self.filename, lineno, variable),
+                        text]
+        else:
+            if self.FORBIDDEN_OVERRIDDEN.search(text):
+                return ["{}:{}: conditional override of variable {}"
+                        .format(self.filename, lineno, variable),
+                        text]
+            if variable not in self.unconditionally_set:
+                self.conditionally_set.append(variable)
+                return
+            if self.CONCATENATING.search(text):
+                return ["{}:{}: immediate assignment to append to variable {}"
+                        .format(self.filename, lineno, variable),
+                        text]
+            if self.USUALLY_OVERRIDDEN.search(text):
+                return
+            if assignment in self.OVERRIDING_ASSIGNMENTS:
+                return ["{}:{}: conditional override of variable {}"
+                        .format(self.filename, lineno, variable),
                         text]
 
 
@@ -99,8 +277,29 @@ class PackageHeader(_CheckFunction):
                         text]
 
 
+class RemoveDefaultPackageSourceVariable(_CheckFunction):
+    packages_that_may_contain_default_source = ["binutils", "gcc", "gdb"]
+
+    def before(self):
+        self.package, package_upper = get_package_prefix_from_filename(self.filename)
+        self.FIND_SOURCE = re.compile(
+            r"^{}_SOURCE\s*=\s*{}-\$\({}_VERSION\)\.tar\.gz"
+            .format(package_upper, self.package, package_upper))
+
+    def check_line(self, lineno, text):
+        if self.FIND_SOURCE.search(text):
+
+            if self.package in self.packages_that_may_contain_default_source:
+                return
+
+            return ["{}:{}: remove default value of _SOURCE variable "
+                    "({}#generic-package-reference)"
+                    .format(self.filename, lineno, self.url_to_manual),
+                    text]
+
+
 class SpaceBeforeBackslash(_CheckFunction):
-    TAB_OR_MULTIPLE_SPACES_BEFORE_BACKSLASH = re.compile(r"^.*(  |\t)\\$")
+    TAB_OR_MULTIPLE_SPACES_BEFORE_BACKSLASH = re.compile(r"^.*(  |\t ?)\\$")
 
     def check_line(self, lineno, text):
         if self.TAB_OR_MULTIPLE_SPACES_BEFORE_BACKSLASH.match(text.rstrip()):
@@ -132,31 +331,33 @@ class TrailingBackslash(_CheckFunction):
 
 
 class TypoInPackageVariable(_CheckFunction):
-    ALLOWED = re.compile("|".join([
+    ALLOWED = re.compile(r"|".join([
         "ACLOCAL_DIR",
         "ACLOCAL_HOST_DIR",
+        "ACLOCAL_PATH",
         "BR_CCACHE_INITIAL_SETUP",
+        "BR_LIBC",
         "BR_NO_CHECK_HASH_FOR",
+        "GCC_TARGET",
+        "LINUX_EXTENSIONS",
         "LINUX_POST_PATCH_HOOKS",
         "LINUX_TOOLS",
         "LUA_RUN",
         "MKFS_JFFS2",
         "MKIMAGE_ARCH",
+        "PACKAGES_PERMISSIONS_TABLE",
         "PKG_CONFIG_HOST_BINARY",
+        "SUMTOOL",
         "TARGET_FINALIZE_HOOKS",
+        "TARGETS_ROOTFS",
         "XTENSA_CORE_NAME"]))
-    PACKAGE_NAME = re.compile("/([^/]+)\.mk")
-    VARIABLE = re.compile("^([A-Z0-9_]+_[A-Z0-9_]+)\s*(\+|)=")
+    VARIABLE = re.compile(r"^(define\s+)?([A-Z0-9_]+_[A-Z0-9_]+)")
 
     def before(self):
-        package = self.PACKAGE_NAME.search(self.filename).group(1)
-        package = package.replace("-", "_").upper()
-        # linux tools do not use LINUX_TOOL_ prefix for variables
-        package = package.replace("LINUX_TOOL_", "")
-        self.package = package
-        self.REGEX = re.compile("^(HOST_)?({}_[A-Z0-9_]+)".format(package))
+        _, self.package = get_package_prefix_from_filename(self.filename)
+        self.REGEX = re.compile(r"(HOST_|ROOTFS_)?({}_[A-Z0-9_]+)".format(self.package))
         self.FIND_VIRTUAL = re.compile(
-            "^{}_PROVIDES\s*(\+|)=\s*(.*)".format(package))
+            r"^{}_PROVIDES\s*(\+|)=\s*(.*)".format(self.package))
         self.virtual = []
 
     def check_line(self, lineno, text):
@@ -164,7 +365,7 @@ class TypoInPackageVariable(_CheckFunction):
         if m is None:
             return
 
-        variable = m.group(1)
+        variable = m.group(2)
 
         # allow to set variables for virtual package this package provides
         v = self.FIND_VIRTUAL.search(text)
@@ -177,23 +378,23 @@ class TypoInPackageVariable(_CheckFunction):
 
         if self.ALLOWED.match(variable):
             return
-        if self.REGEX.search(text) is None:
-            return ["{}:{}: possible typo: {} -> *{}*"
-                    .format(self.filename, lineno, variable, self.package),
+        if self.REGEX.search(variable) is None:
+            return ["{}:{}: possible typo, variable not properly prefixed: {} -> *{}_XXXX* ({}#_tips_and_tricks)"
+                    .format(self.filename, lineno, variable, self.package, self.url_to_manual),
                     text]
 
 
 class UselessFlag(_CheckFunction):
-    DEFAULT_AUTOTOOLS_FLAG = re.compile("^.*{}".format("|".join([
-        "_AUTORECONF\s*=\s*NO",
-        "_LIBTOOL_PATCH\s*=\s*YES"])))
-    DEFAULT_GENERIC_FLAG = re.compile("^.*{}".format("|".join([
-        "_INSTALL_IMAGES\s*=\s*NO",
-        "_INSTALL_REDISTRIBUTE\s*=\s*YES",
-        "_INSTALL_STAGING\s*=\s*NO",
-        "_INSTALL_TARGET\s*=\s*YES"])))
-    END_CONDITIONAL = re.compile("^\s*(endif)")
-    START_CONDITIONAL = re.compile("^\s*(ifeq|ifneq)")
+    DEFAULT_AUTOTOOLS_FLAG = re.compile(r"^.*{}".format("|".join([
+        r"_AUTORECONF\s*=\s*NO",
+        r"_LIBTOOL_PATCH\s*=\s*YES"])))
+    DEFAULT_GENERIC_FLAG = re.compile(r"^.*{}".format("|".join([
+        r"_INSTALL_IMAGES\s*=\s*NO",
+        r"_REDISTRIBUTE\s*=\s*YES",
+        r"_INSTALL_STAGING\s*=\s*NO",
+        r"_INSTALL_TARGET\s*=\s*YES"])))
+    END_CONDITIONAL = re.compile(r"^\s*({})".format("|".join(end_conditional)))
+    START_CONDITIONAL = re.compile(r"^\s*({})".format("|".join(start_conditional)))
 
     def before(self):
         self.conditional = 0
@@ -216,8 +417,91 @@ class UselessFlag(_CheckFunction):
                     .format(self.filename, lineno, self.url_to_manual),
                     text]
 
-        if self.DEFAULT_AUTOTOOLS_FLAG.search(text):
+        if self.DEFAULT_AUTOTOOLS_FLAG.search(text) and not text.lstrip().startswith("HOST_"):
             return ["{}:{}: useless default value "
                     "({}#_infrastructure_for_autotools_based_packages)"
                     .format(self.filename, lineno, self.url_to_manual),
                     text]
+
+
+class VariableWithBraces(_CheckFunction):
+    VARIABLE_WITH_BRACES = re.compile(r"^[^#].*[^$]\${\w+}")
+
+    def check_line(self, lineno, text):
+        if self.VARIABLE_WITH_BRACES.match(text.rstrip()):
+            return ["{}:{}: use $() to delimit variables, not ${{}}"
+                    .format(self.filename, lineno),
+                    text]
+
+
+class CPEVariables(_CheckFunction):
+    """
+    Check that the values for the CPE variables are not the default.
+      - CPE_ID_* variables must not be set to their default
+      - CPE_ID_VALID must not be set if a non-default CPE_ID variable is set
+    """
+    def before(self):
+        pkg, _ = os.path.splitext(os.path.basename(self.filename))
+        self.CPE_fields_defaults = {
+            "VALID": "NO",
+            "PREFIX": "cpe:2.3:a",
+            "VENDOR": f"{pkg}_project",
+            "PRODUCT": pkg,
+            "VERSION": None,
+            "UPDATE": "*",
+        }
+        self.valid = None
+        self.non_defaults = 0
+        self.CPE_FIELDS_RE = re.compile(
+            r"^\s*(.+_CPE_ID_({}))\s*=\s*(.+)$"
+            .format("|".join(self.CPE_fields_defaults)),
+        )
+        self.VERSION_RE = re.compile(
+            rf"^(HOST_)?{pkg.upper().replace('-', '_')}_VERSION\s*=\s*(.+)$",
+        )
+        self.COMMENT_RE = re.compile(r"^\s*#.*")
+
+    def check_line(self, lineno, text):
+        text = self.COMMENT_RE.sub('', text.rstrip())
+
+        # WARNING! The VERSION_RE can _also_ match the same lines as CPE_FIELDS_RE,
+        # but not the other way around. So we must first check for CPE_FIELDS_RE,
+        # and if not matched, then and only then check for VERSION_RE.
+        match = self.CPE_FIELDS_RE.match(text)
+        if match:
+            var, field, val = match.groups()
+            return self._check_field(lineno, text, field, var, val)
+
+        match = self.VERSION_RE.match(text)
+        if match:
+            self.CPE_fields_defaults["VERSION"] = match.groups()[1]
+
+    def after(self):
+        # "VALID" counts in the non-defaults; so when "VALID" is present,
+        # 1 non-default means only "VALID" is present, so that's OK.
+        if self.valid and self.non_defaults > 1:
+            return ["{}:{}: 'YES' is implied when a non-default CPE_ID field is specified: {} ({}#cpe-id)".format(
+                        self.filename,
+                        self.valid["lineno"],
+                        self.valid["text"],
+                        self.url_to_manual,
+            )]
+
+    def _check_field(self, lineno, text, field, var, val):
+        if field == "VERSION" and self.CPE_fields_defaults[field] is None:
+            return ["{}:{}: expecting package version to be set before CPE_ID_VERSION".format(
+                self.filename,
+                lineno,
+            )]
+        if val == self.CPE_fields_defaults[field]:
+            return ["{}:{}: '{}' is the default value for {} ({}#cpe-id)".format(
+                self.filename,
+                lineno,
+                val,
+                var,
+                self.url_to_manual,
+            )]
+        else:
+            if field == "VALID":
+                self.valid = {"lineno": lineno, "text": text}
+            self.non_defaults += 1

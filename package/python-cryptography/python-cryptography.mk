@@ -4,12 +4,29 @@
 #
 ################################################################################
 
-PYTHON_CRYPTOGRAPHY_VERSION = 1.7.2
-PYTHON_CRYPTOGRAPHY_SOURCE = cryptography-$(PYTHON_CRYPTOGRAPHY_VERSION).tar.gz
-PYTHON_CRYPTOGRAPHY_SITE = https://pypi.python.org/packages/99/df/71c7260003f5c469cec3db4c547115df39e9ce6c719a99e067ba0e78fd8a
-PYTHON_CRYPTOGRAPHY_SETUP_TYPE = setuptools
+PYTHON_CRYPTOGRAPHY_VERSION = 50.0.2
+PYTHON_CRYPTOGRAPHY_SOURCE_PYPI = cryptography-$(PYTHON_CRYPTOGRAPHY_VERSION).tar.gz
+PYTHON_CRYPTOGRAPHY_SITE_PYPI = https://files.pythonhosted.org/packages/9d/af/182eb91b0df3fe75c4d9f26fe70684569566745f6ba7e5c9c73a862c5252
+PYTHON_CRYPTOGRAPHY_SITE = $(PYTHON_CRYPTOGRAPHY_SITE_PYPI)/$(PYTHON_CRYPTOGRAPHY_SOURCE_PYPI)?buildroot-path=filename
+PYTHON_CRYPTOGRAPHY_SETUP_TYPE = maturin
 PYTHON_CRYPTOGRAPHY_LICENSE = Apache-2.0 or BSD-3-Clause
 PYTHON_CRYPTOGRAPHY_LICENSE_FILES = LICENSE LICENSE.APACHE LICENSE.BSD
-PYTHON_CRYPTOGRAPHY_DEPENDENCIES = host-python-cffi openssl
+PYTHON_CRYPTOGRAPHY_CPE_ID_VENDOR = cryptography.io
+PYTHON_CRYPTOGRAPHY_CPE_ID_PRODUCT = cryptography
+PYTHON_CRYPTOGRAPHY_DEPENDENCIES = \
+	host-pkgconf \
+	host-python-cffi \
+	host-python-setuptools \
+	openssl
+HOST_PYTHON_CRYPTOGRAPHY_DEPENDENCIES = \
+	host-pkgconf \
+	host-python-cffi \
+	host-python-setuptools \
+	host-openssl
+PYTHON_CRYPTOGRAPHY_ENV = OPENSSL_NO_VENDOR=1
+HOST_PYTHON_CRYPTOGRAPHY_ENV = OPENSSL_NO_VENDOR=1
+PYTHON_CRYPTOGRAPHY_BUILD_OPTS = --skip-dependency-check
+HOST_PYTHON_CRYPTOGRAPHY_BUILD_OPTS = --skip-dependency-check
 
 $(eval $(python-package))
+$(eval $(host-python-package))

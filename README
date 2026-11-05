@@ -3,7 +3,7 @@ Linux systems through cross-compilation.
 
 The documentation can be found in docs/manual. You can generate a text
 document with 'make manual-text' and read output/docs/manual/manual.text.
-Online documentation can be found at http://buildroot.org/docs.html
+Online documentation can be found at https://buildroot.org/docs.html
 
 To build and use the buildroot stuff, do the following:
 
@@ -20,7 +20,7 @@ Buildroot comes with a basic configuration for a number of boards. Run
 
 Please feed suggestions, bug reports, insults, and bribes back to the
 buildroot mailing list: buildroot@buildroot.org
-You can also find us on #buildroot on Freenode IRC.
+You can also find us on #buildroot on OFTC IRC.
 
 If you would like to contribute patches, please read
 https://buildroot.org/manual.html#submitting-patches

@@ -1,4 +1,7 @@
-# Locally calculated after checking pgp signature
-# https://curl.haxx.se/download/curl-7.56.0.tar.xz.asc
-sha256 32437bcca0e9434384329fdc733547879d25ba70335b3cf9e3d9cbc3e71fd172  curl-7.56.0.tar.xz
-sha256 cbcf511f5702f7baf5424193a792bc9c18fab22bcbec2e6a587598389dc632c2  COPYING
+# From https://github.com/curl/curl/releases/tag/curl-8_23_0
+# after checking pgp signature:
+# https://curl.se/download/curl-8.23.0.tar.xz.asc
+# signed with key 27EDEAF22F3ABCEB50DB9A125CC908FDB71E12C2
+sha256  8dadd7d2536a314f982ad05a651b713f426bf7d02cc2c76cffb9796f2218e6c5  curl-8.23.0.tar.xz
+# Locally computed
+sha256  82f2f4427d6545ee5aaac4f0b80428da6cc8ba41c2cf5da3a03680ec327b9681  COPYING

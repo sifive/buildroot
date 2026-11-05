@@ -1,0 +1,5 @@
+# md5, sha256 from https://pypi.org/pypi/webencodings/json
+md5  47dfd43da448410f24fbc08d597ac72d  webencodings-0.6.1.tar.gz
+sha256  565f9ad031c702dae404e27a099e3e09186a3ab1b9520f06d215502b651fd910  webencodings-0.6.1.tar.gz
+# Locally computed sha256 checksums
+sha256  e06ef33485e7498ad592887c41fa79cc8a7fecde576c7210e11bfdddef58040e  LICENSE

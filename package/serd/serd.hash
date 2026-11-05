@@ -1,0 +1,4 @@
+# Locally calculated after checking signature
+# https://download.drobilla.net/serd-0.32.8.tar.xz.sig
+sha256  f47259bc38ba553b0deb8b6dab6b5b73d3630469a7c9439ccdca80e06d7c1ece  serd-0.32.8.tar.xz
+sha256  f04f124b8814edb03cd64fa82d38cc1c1aa32195fabd33c196b02968e466ba32  COPYING

@@ -4,16 +4,18 @@
 #
 ################################################################################
 
-FAAD2_VERSION_MAJOR = 2.8
-FAAD2_VERSION = $(FAAD2_VERSION_MAJOR).1
-FAAD2_SITE = http://downloads.sourceforge.net/project/faac/faad2-src/faad2-$(FAAD2_VERSION_MAJOR).0
-FAAD2_SOURCE = faad2-$(FAAD2_VERSION).tar.bz2
+FAAD2_VERSION = 2.11.2
+FAAD2_SITE = $(call github,knik0,faad2,$(FAAD2_VERSION))
 FAAD2_LICENSE = GPL-2.0
 FAAD2_LICENSE_FILES = COPYING
-# No configure script in upstream tarball
-FAAD2_AUTORECONF = YES
-# frontend/faad calls frexp()
-FAAD2_CONF_ENV = LIBS=-lm
+FAAD2_CPE_ID_VALID = YES
 FAAD2_INSTALL_STAGING = YES
 
-$(eval $(autotools-package))
+# faad2 contains assembly routines using ARM instructions not present in thumb1 mode:
+# Error: selected processor does not support `smull r2,r3,r1,r0' in Thumb mode
+# so force ARM mode
+ifeq ($(BR2_ARM_INSTRUCTIONS_THUMB),y)
+FAAD2_CONF_OPTS += -DCMAKE_C_FLAGS="$(TARGET_CFLAGS) -marm"
+endif
+
+$(eval $(cmake-package))

@@ -1,0 +1,5 @@
+# md5, sha256 from https://pypi.org/pypi/mpmath/json
+md5  76a2228197ea084926c3d72c31ed1a28  mpmath-1.4.1.tar.gz
+sha256  efd6d1b75f09d69524a67609949812668b28e81ecbfe0ab449ced8c13e92642e  mpmath-1.4.1.tar.gz
+# Locally computed sha256 checksums
+sha256  01cb9dc26c9afd5804c2ebf72f9ef03b5fd48972875ed59a483a45f441971f1e  LICENSE

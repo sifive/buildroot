@@ -4,12 +4,24 @@
 #
 ################################################################################
 
-# This cset is on the branch 'Krypton'
-# When Kodi is updated, then this should be updated to the corresponding branch
-KODI_INPUTSTREAM_ADAPTIVE_VERSION = f2904b547e940c724dce7412a26744c2698cab66
-KODI_INPUTSTREAM_ADAPTIVE_SITE = $(call github,peak3d,inputstream.adaptive,$(KODI_INPUTSTREAM_ADAPTIVE_VERSION))
-KODI_INPUTSTREAM_ADAPTIVE_LICENSE = GPL-2.0+
-KODI_INPUTSTREAM_ADAPTIVE_LICENSE_FILES = src/main.cpp
-KODI_INPUTSTREAM_ADAPTIVE_DEPENDENCIES = libplatform kodi-platform
+KODI_INPUTSTREAM_ADAPTIVE_VERSION = 22.3.24-Piers
+KODI_INPUTSTREAM_ADAPTIVE_SITE = $(call github,xbmc,inputstream.adaptive,$(KODI_INPUTSTREAM_ADAPTIVE_VERSION))
+KODI_INPUTSTREAM_ADAPTIVE_LICENSE = \
+	BSD-2-Clause-Views \
+	BSD-3-Clause \
+	google-patent-license-webm \
+	GPL-2.0-or-later \
+	RSA-MD5
+
+KODI_INPUTSTREAM_ADAPTIVE_LICENSE_FILES = \
+	LICENSE.md \
+	LICENSES/README.md \
+	LICENSES/BSD-2-Clause-Views \
+	LICENSES/BSD-3-Clause \
+	LICENSES/google-patent-license-webm \
+	LICENSES/GPL-2.0-or-later \
+	LICENSES/RSA-MD
+
+KODI_INPUTSTREAM_ADAPTIVE_DEPENDENCIES = bento4 kodi pugixml
 
 $(eval $(cmake-package))

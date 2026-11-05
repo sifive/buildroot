@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
+set -e
+
 die() {
-  echo "Error: $@" >&2
+  cat <<EOF >&2
+Error: $@
+
+Usage: ${0} -c GENIMAGE_CONFIG_FILE
+EOF
   exit 1
 }
 
@@ -26,11 +32,29 @@ done
 
 [ -n "${GENIMAGE_CFG}" ] || die "Missing argument"
 
+# Pass an empty rootpath. genimage makes a full copy of the given rootpath to
+# ${GENIMAGE_TMP}/root so passing TARGET_DIR would be a waste of time and disk
+# space. We don't rely on genimage to build the rootfs image, just to insert a
+# pre-built one in the disk image.
+
+trap 'rm -rf "${ROOTPATH_TMP}"' EXIT
+ROOTPATH_TMP="$(mktemp -d)"
+
 rm -rf "${GENIMAGE_TMP}"
 
 genimage \
-	--rootpath "${TARGET_DIR}"     \
+	--rootpath "${ROOTPATH_TMP}"     \
 	--tmppath "${GENIMAGE_TMP}"    \
 	--inputpath "${BINARIES_DIR}"  \
 	--outputpath "${BINARIES_DIR}" \
 	--config "${GENIMAGE_CFG}"
+
+if grep -Eq "^BR2_PACKAGE_HOST_BMAP_TOOLS=y$" "${BR2_CONFIG}"; then
+	while IFS= read -r image; do
+		image_path="${BINARIES_DIR}/${image}"
+		if ! test -f "${image_path}"; then
+			continue
+		fi
+		bmaptool create "${image_path}" -o "${image_path}.bmap"
+	done < <(grep '^image ' "${GENIMAGE_CFG}" | cut -d ' ' -f 2)
+fi

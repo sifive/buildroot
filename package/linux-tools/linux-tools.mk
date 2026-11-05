@@ -19,8 +19,12 @@
 
 include $(sort $(wildcard package/linux-tools/*.mk.in))
 
-# We only need the kernel to be extracted, not actually built
-LINUX_TOOLS_PATCH_DEPENDENCIES = linux
+# Prevent the kernel from being compiled in parallel with linux-tools. The
+# kernel and some linux-tools (such as perf) use fixdep to manage kconfig
+# dependencies. There is a race condition where the kernel and linux-tools try
+# to build fixdep while the other tries to use fixdep, resulting in the use of
+# fixdep failing.
+LINUX_TOOLS_DEPENDENCIES = linux
 
 # Install Linux kernel tools in the staging directory since some tools
 # may install shared libraries and headers (e.g. cpupower).
@@ -41,5 +45,34 @@ LINUX_TOOLS_POST_INSTALL_STAGING_HOOKS += $(foreach tool,$(LINUX_TOOLS),\
 LINUX_TOOLS_POST_INSTALL_TARGET_HOOKS += $(foreach tool,$(LINUX_TOOLS),\
 	$(if $(BR2_PACKAGE_LINUX_TOOLS_$(call UPPERCASE,$(tool))),\
 		$(call UPPERCASE,$(tool))_INSTALL_TARGET_CMDS))
+
+define LINUX_TOOLS_LINUX_CONFIG_FIXUPS
+	$(foreach tool,$(LINUX_TOOLS),\
+		$(if $(BR2_PACKAGE_LINUX_TOOLS_$(call UPPERCASE,$(tool))),\
+			$($(call UPPERCASE,$(tool))_LINUX_CONFIG_FIXUPS))
+	)
+endef
+
+define LINUX_TOOLS_INSTALL_INIT_SYSTEMD
+	$(foreach tool,$(LINUX_TOOLS),\
+		$(if $(BR2_PACKAGE_LINUX_TOOLS_$(call UPPERCASE,$(tool))),\
+			$($(call UPPERCASE,$(tool))_INSTALL_INIT_SYSTEMD))
+	)
+endef
+
+define LINUX_TOOLS_INSTALL_INIT_SYSV
+	$(foreach tool,$(LINUX_TOOLS),\
+		$(if $(BR2_PACKAGE_LINUX_TOOLS_$(call UPPERCASE,$(tool))),\
+			$($(call UPPERCASE,$(tool))_INSTALL_INIT_SYSV))
+	)
+endef
+
+define LINUX_TOOLS_INSTALL_INIT_OPENRC
+	$(foreach tool,$(LINUX_TOOLS),\
+		$(if $(BR2_PACKAGE_LINUX_TOOLS_$(call UPPERCASE,$(tool))),\
+			$(or $($(call UPPERCASE,$(tool))_INSTALL_INIT_OPENRC),\
+			     $($(call UPPERCASE,$(tool))_INSTALL_INIT_SYSV)))
+	)
+endef
 
 $(eval $(generic-package))

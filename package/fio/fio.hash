@@ -1,2 +1,8 @@
-# Locally computed
-sha256 1952db4d534221e6e8454f851dfcc38328b0ed4a3f499ea25a51ca2b5ccc8136  fio-fio-2.20.tar.gz
+# From https://brick.kernel.dk/snaps/MD5SUMS
+md5  0e817db93ecf11a4797aea757f29c91d  fio-3.42.tar.gz
+# Locally computed after checking gpg signature from
+# https://brick.kernel.dk/snaps/fio-3.42.tar.gz.asc
+# with key C0FC392DCADE26D975FA5E4AF7D358FB2971E0A6
+sha256  9128d0c81bd7bffab0dd06cbfb755a05ef92f3b8a0b0c61f1b3538df6750f1e0  fio-3.42.tar.gz
+sha256  8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643  COPYING
+sha256  8a240c1ad13d1fe3e58588643d81d0695899be4a669fe6d8fafa76ca6a89db2c  MORAL-LICENSE

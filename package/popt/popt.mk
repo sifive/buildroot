@@ -4,13 +4,13 @@
 #
 ################################################################################
 
-POPT_VERSION = 1.16
-POPT_SITE = http://rpm5.org/files/popt
+POPT_VERSION = 1.19
+POPT_SITE = http://ftp.rpm.org/popt/releases/popt-1.x
 POPT_INSTALL_STAGING = YES
 POPT_LICENSE = MIT
 POPT_LICENSE_FILES = COPYING
-POPT_AUTORECONF = YES
-POPT_GETTEXTIZE = YES
+POPT_CPE_ID_VALID = YES
+
 POPT_DEPENDENCIES = $(TARGET_NLS_DEPENDENCIES)
 
 POPT_CONF_ENV = ac_cv_va_copy=yes
